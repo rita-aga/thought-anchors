@@ -9,3 +9,8 @@ math-rollouts/
 math-rollouts_test/
 .cursorindexingignore
 .specstory
+vision_rollouts/
+.env
+venv
+.github
+math_rollouts/
