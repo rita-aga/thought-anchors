@@ -25,6 +25,42 @@ from functools import partial
 import scipy.stats as stats
 from matplotlib.lines import Line2D
 
+# Global OpenAI API call counter
+OPENAI_API_CALLS = 0
+OPENAI_API_LOCK = mp.Lock()
+OPENAI_FALLBACK_COUNT = 0
+
+def increment_openai_counter():
+    """Thread-safe increment of OpenAI API call counter."""
+    global OPENAI_API_CALLS
+    with OPENAI_API_LOCK:
+        OPENAI_API_CALLS += 1
+
+def increment_fallback_counter():
+    """Thread-safe increment of fallback counter."""
+    global OPENAI_FALLBACK_COUNT
+    with OPENAI_API_LOCK:
+        OPENAI_FALLBACK_COUNT += 1
+
+def get_openai_call_count():
+    """Get current OpenAI API call count."""
+    global OPENAI_API_CALLS
+    with OPENAI_API_LOCK:
+        return OPENAI_API_CALLS
+
+def get_fallback_count():
+    """Get current fallback count."""
+    global OPENAI_FALLBACK_COUNT
+    with OPENAI_API_LOCK:
+        return OPENAI_FALLBACK_COUNT
+
+def reset_openai_counter():
+    """Reset OpenAI API call counter."""
+    global OPENAI_API_CALLS, OPENAI_FALLBACK_COUNT
+    with OPENAI_API_LOCK:
+        OPENAI_API_CALLS = 0
+        OPENAI_FALLBACK_COUNT = 0
+
 # Class to hold arguments for importance calculation functions
 class ImportanceArgs:
     """Class to hold arguments for importance calculation functions."""
@@ -139,6 +175,9 @@ JSON: {{"quality": YOUR_NUMBER}}"""
         try:
             current_token_limit = token_limits[min(attempt, len(token_limits) - 1)]
             
+            # Increment counter before making the API call
+            increment_openai_counter()
+            
             response_obj = client.chat.completions.create(
                 model="gpt-5-nano-2025-08-07",
                 messages=[{"role": "user", "content": eval_prompt}],
@@ -149,7 +188,7 @@ JSON: {{"quality": YOUR_NUMBER}}"""
             content = response_obj.choices[0].message.content
             if not content or not content.strip():
                 if attempt < max_retries:
-                    print(f"  GPT-5 attempt {attempt + 1} failed, retrying with {token_limits[min(attempt + 1, len(token_limits) - 1)]} tokens...")
+                    print(f"  GPT-5 attempt {attempt + 1} failed (empty response), retrying with {token_limits[min(attempt + 1, len(token_limits) - 1)]} tokens...")
                     continue
                 else:
                     print(f"  Warning: GPT-5 returned empty after {max_retries + 1} attempts. Using fallback.")
@@ -169,24 +208,27 @@ JSON: {{"quality": YOUR_NUMBER}}"""
                 # Look for 'quality' or 'overall_quality' keys
                 score = result.get('quality', result.get('overall_quality', 5))
                 score = max(1, min(10, float(score)))
+                # Success! No need to print anything for successful calls to avoid spam
                 return score / 10.0
-            except (json.JSONDecodeError, ValueError, KeyError):
+            except (json.JSONDecodeError, ValueError, KeyError) as parse_error:
                 if attempt < max_retries:
-                    print(f"  GPT-5 JSON parse failed on attempt {attempt + 1}, retrying...")
+                    print(f"  GPT-5 attempt {attempt + 1} failed (JSON parse error: {str(parse_error)[:50]}), retrying...")
                     continue
                 else:
-                    print(f"  Warning: GPT-5 JSON parse failed after {max_retries + 1} attempts.")
+                    print(f"  Warning: GPT-5 JSON parse failed after {max_retries + 1} attempts. Content: '{content[:100]}...'")
                     break
                     
         except Exception as e:
             if attempt < max_retries:
-                print(f"  GPT-5 error on attempt {attempt + 1}: {str(e)[:100]}..., retrying...")
+                print(f"  GPT-5 attempt {attempt + 1} failed (API error: {str(e)[:80]}), retrying...")
                 continue
             else:
-                print(f"  Error in GPT-5 evaluation after {max_retries + 1} attempts: {str(e)[:100]}")
+                print(f"  Warning: GPT-5 API failed after {max_retries + 1} attempts: {str(e)[:100]}")
                 break
     
-    # Fallback scoring
+    # Fallback scoring - track that we're using it
+    print(f"  Using fallback scoring (word/sentence heuristic) instead of GPT-5")
+    increment_fallback_counter()
     word_count = len(response.split())
     sentence_count = len([s for s in response.split('.') if s.strip()])
     length_score = min(10, max(1, word_count / 10))
@@ -249,6 +291,9 @@ def generate_chunk_summary(chunk_text: str) -> str:
     """
 
     try:
+        # Increment counter before making the API call
+        increment_openai_counter()
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
@@ -297,6 +342,9 @@ def generate_problem_nickname(problem_text: str) -> str:
     """
 
     try:
+        # Increment counter before making the API call
+        increment_openai_counter()
+        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
@@ -338,6 +386,9 @@ def label_chunk(problem_text: str, chunks: List[str], chunk_idx: int) -> Dict:
     formatted_prompt = DAG_PROMPT.format(problem_text=problem_text, full_chunked_text=full_chunked_text)
     
     try:
+        # Increment counter before making the API call
+        increment_openai_counter()
+        
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": formatted_prompt}],
@@ -2893,11 +2944,34 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
     chunk_info = {}
     chunk_qualities = {}  # New: store quality scores instead of accuracies
     
+    # Progress tracking - save/resume chunk processing
+    progress_file = problem_dir / "analysis_progress.json"
+    processed_chunks = set()
+    
+    # Load existing progress if available
+    if progress_file.exists():
+        with open(progress_file, 'r') as f:
+            progress_data = json.load(f)
+            processed_chunks = set(progress_data.get('completed_chunks', []))
+            print(f"  Resuming from progress: {len(processed_chunks)} chunks already completed")
+    
     # Collect all unique chunks for embedding (SAME AS ORIGINAL)
     all_chunks_to_embed = set()
     
-    print(f"  Processing {len(chunks)} chunks...")
+    print(f"  Processing {len(chunks)} chunks (starting from chunk {len(processed_chunks) + 1})...")
     for chunk_idx in range(len(chunks)):
+        # Skip already processed chunks
+        if chunk_idx in processed_chunks:
+            # Still need to load the data for final analysis
+            chunk_dir = problem_dir / f"chunk_{chunk_idx}"
+            solutions_file = chunk_dir / "solutions.json"
+            if solutions_file.exists():
+                with open(solutions_file, 'r') as f:
+                    rollouts = json.load(f)
+                # Quick load without re-evaluation
+                chunk_qualities[chunk_idx] = [r.get('quality_score', 0.5) for r in rollouts if r.get('is_valid', True)]
+                chunk_info[chunk_idx] = [{"chunk_removed": chunks[chunk_idx], "quality_score": q} for q in chunk_qualities[chunk_idx]]
+            continue
         chunk_dir = problem_dir / f"chunk_{chunk_idx}"
         solutions_file = chunk_dir / "solutions.json"
         
@@ -2915,6 +2989,7 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
         # Process rollouts into same format as MATH analysis
         processed_solutions = []
         rollout_qualities = []
+        initial_fallback_count = get_fallback_count() if use_gpt5 else 0
         
         for i, rollout in enumerate(rollouts):
             if rollout.get('is_valid', True):
@@ -2950,7 +3025,32 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
         
         # Show completion stats for this chunk
         avg_quality = np.mean(rollout_qualities) if rollout_qualities else 0.0
-        print(f"    Chunk {chunk_idx+1}: Complete! {len(rollout_qualities)} rollouts, avg quality: {avg_quality:.3f}")
+        if use_gpt5:
+            final_fallback_count = get_fallback_count()
+            chunk_fallbacks = final_fallback_count - initial_fallback_count
+            total_evaluations = len(rollout_qualities)
+            if total_evaluations > 0:
+                success_rate = (total_evaluations - chunk_fallbacks) / total_evaluations * 100
+                print(f"    Chunk {chunk_idx+1}: Complete! {len(rollout_qualities)} rollouts, avg quality: {avg_quality:.3f}, GPT-5 success: {total_evaluations - chunk_fallbacks}/{total_evaluations} ({success_rate:.0f}%)")
+            else:
+                print(f"    Chunk {chunk_idx+1}: Complete! {len(rollout_qualities)} rollouts, avg quality: {avg_quality:.3f}")
+        else:
+            print(f"    Chunk {chunk_idx+1}: Complete! {len(rollout_qualities)} rollouts, avg quality: {avg_quality:.3f}")
+        
+        # Save progress after each chunk completion
+        processed_chunks.add(chunk_idx)
+        progress_data = {
+            'completed_chunks': list(processed_chunks),
+            'total_chunks': len(chunks),
+            'last_updated': time.time()
+        }
+        with open(progress_file, 'w') as f:
+            json.dump(progress_data, f, indent=2)
+    
+    # Clean up progress file when complete
+    if progress_file.exists():
+        progress_file.unlink()
+        print(f"  All chunks processed! Removed progress file.")
     
     # === COMPUTE EMBEDDINGS IN BATCHES (EXACTLY LIKE ORIGINAL) ===
     all_chunks_list = list(all_chunks_to_embed)
@@ -3068,6 +3168,9 @@ Return ONLY a valid JSON object with these exact keys:
 Replace the 5s with your actual scores from 1-10. Do not include any other text."""
     
     try:
+        # Increment counter before making the API call
+        increment_openai_counter()
+        
         response_obj = client.chat.completions.create(
             model="gpt-5-chat-latest",
             messages=[{"role": "user", "content": eval_prompt}],
@@ -3169,6 +3272,9 @@ Analysis step to categorize:
 Respond with ONLY the category name (e.g., "Technical Analysis"). No explanation."""
         
         try:
+            # Increment counter before making the API call
+            increment_openai_counter()
+            
             response = client.chat.completions.create(
                 model="gpt-5-chat-latest",
                 messages=[{"role": "user", "content": label_prompt}],
@@ -4001,6 +4107,10 @@ def analyze_response_length_statistics(correct_rollouts_dir: Path = None, incorr
     print(f"Statistics saved to {stats_file}")
 
 def main():    
+    # Reset API call counter at the start
+    reset_openai_counter()
+    start_time = time.time()
+    
     # Set up directories
     correct_rollouts_dir = Path(args.correct_rollouts_dir) if args.correct_rollouts_dir and len(args.correct_rollouts_dir) > 0 else None
     incorrect_rollouts_dir = Path(args.incorrect_rollouts_dir) if args.incorrect_rollouts_dir and len(args.incorrect_rollouts_dir) > 0 else None
@@ -4143,6 +4253,20 @@ def main():
             similarity_threshold=args.similarity_threshold,
             force_metadata=args.force_metadata
         )
+    
+    # Report final API usage
+    total_calls = get_openai_call_count()
+    total_fallbacks = get_fallback_count()
+    elapsed_time = time.time() - start_time
+    print(f"\n=== Analysis Complete ===")
+    print(f"Total OpenAI API calls made: {total_calls}")
+    if total_fallbacks > 0:
+        print(f"Total fallbacks to heuristic scoring: {total_fallbacks}")
+        success_rate = (total_calls - total_fallbacks) / total_calls * 100 if total_calls > 0 else 0
+        print(f"API success rate: {success_rate:.1f}%")
+    print(f"Total execution time: {elapsed_time:.1f} seconds")
+    if total_calls > 0:
+        print(f"Average time per API call: {elapsed_time/total_calls:.2f} seconds")
 
 if __name__ == "__main__":
     main()

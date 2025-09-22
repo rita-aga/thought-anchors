@@ -1,8 +1,0 @@
-Function tags with highest variance in importance:
-
-Active Computation:
-  Variance: 0.000000
-  Mean: 0.000000
-  Count: 8
-  Coefficient of Variation: 0.000000
-

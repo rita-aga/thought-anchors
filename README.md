@@ -56,7 +56,16 @@ The extension demonstrates that the thought anchor framework generalizes beyond 
 
 **Usage:**
 ```bash
-python analyze_rollouts.py -vc vision_rollouts/[model]/[params]/creative_analysis
+python analyze_rollouts.py -vc vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis
+```
+
+## Extract Top Thought Anchors
+
+After running creative analysis, extract the most important reasoning steps:
+
+```bash
+python extract_creative_anchors.py -r analysis/basic/creative_analysis/vision_analysis_results.json -k 10
+python plot_creative_analysis.py  # Generate visualizations
 ```
 
 ## Citation

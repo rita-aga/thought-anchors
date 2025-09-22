@@ -1,4 +1,0 @@
-category,avg_zscore,std_zscore,standard_error,count
-Fact Retrieval,0.2294157338705618,0.0,0.0,3
-Plan Generation,0.2294157338705618,0.0,0.0,2
-Active Computation,0.2294157338705618,0.0,0.0,5
