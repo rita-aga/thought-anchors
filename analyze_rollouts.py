@@ -18,6 +18,9 @@ from sentence_transformers import SentenceTransformer
 from utils import normalize_answer, split_solution_into_chunks
 import math
 import multiprocessing as mp
+import time
+import random
+import torch
 from functools import partial
 import scipy.stats as stats
 from matplotlib.lines import Line2D
@@ -47,6 +50,7 @@ parser.add_argument('-ic', '--correct_rollouts_dir', type=str, default="math_rol
 parser.add_argument('-ii', '--incorrect_rollouts_dir', type=str, default="math_rollouts/deepseek-r1-distill-qwen-14b/temperature_0.6_top_p_0.95/incorrect_base_solution", help='Directory containing incorrect rollout data')
 parser.add_argument('-icf', '--correct_forced_answer_rollouts_dir', type=str, default="math_rollouts/deepseek-r1-distill-qwen-14b/temperature_0.6_top_p_0.95/correct_base_solution_forced_answer", help='Directory containing correct rollout data with forced answers')
 parser.add_argument('-iif', '--incorrect_forced_answer_rollouts_dir', type=str, default="math_rollouts/deepseek-r1-distill-qwen-14b/temperature_0.6_top_p_0.95/incorrect_base_solution_forced_answer", help='Directory containing incorrect rollout data with forced answers')
+parser.add_argument('-vc', '--vision_creative_rollouts_dir', type=str, default=None, help='Directory containing vision/creative rollout data (e.g., vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis)')
 parser.add_argument('-o', '--output_dir', type=str, default="analysis/basic", help='Directory to save analysis results (defaults to rollouts_dir)')
 parser.add_argument('-p', '--problems', type=str, default=None, help='Comma-separated list of problem indices to analyze (default: all)')
 parser.add_argument('-m', '--max_problems', type=int, default=None, help='Maximum number of problems to analyze')
@@ -94,10 +98,101 @@ plt.rcParams.update({
 # Load environment variables
 load_dotenv()
 
+# Device detection function
+def get_device():
+    """Get the best available device for PyTorch operations"""
+    if torch.cuda.is_available():
+        return 'cuda:0'
+    elif torch.backends.mps.is_available():
+        return 'mps'
+    else:
+        return 'cpu'
+
 # Set up OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 if not client.api_key:
     raise ValueError("OPENAI_API_KEY not found in .env file")
+
+def evaluate_creative_quality_gpt5(response: str, reference: str = "", criteria: List[str] = None, max_retries: int = 2) -> float:
+    """
+    Use GPT-5 Nano to evaluate creative/artistic analysis quality
+    Returns a single quality score from 0.0 to 1.0
+    """
+    
+    # Truncate response more aggressively to ensure consistent token usage
+    truncated_response = response[:600] if len(response) > 600 else response
+    truncated_reference = reference[:150] if len(reference) > 150 else reference
+    
+    # Simplified evaluation prompt optimized for GPT-5-nano
+    eval_prompt = f"""Rate this art analysis quality (1-10):
+
+"{truncated_response}"
+
+{f'Reference: "{truncated_reference}"' if truncated_reference.strip() else ''}
+
+JSON: {{"quality": YOUR_NUMBER}}"""
+
+    # Try with increasing token limits if needed
+    token_limits = [1200, 1500, 2000]
+    
+    for attempt in range(max_retries + 1):
+        try:
+            current_token_limit = token_limits[min(attempt, len(token_limits) - 1)]
+            
+            response_obj = client.chat.completions.create(
+                model="gpt-5-nano-2025-08-07",
+                messages=[{"role": "user", "content": eval_prompt}],
+                max_completion_tokens=current_token_limit
+                # No temperature - GPT-5-nano only supports default (1.0)
+            )
+            
+            content = response_obj.choices[0].message.content
+            if not content or not content.strip():
+                if attempt < max_retries:
+                    print(f"  GPT-5 attempt {attempt + 1} failed, retrying with {token_limits[min(attempt + 1, len(token_limits) - 1)]} tokens...")
+                    continue
+                else:
+                    print(f"  Warning: GPT-5 returned empty after {max_retries + 1} attempts. Using fallback.")
+                    break
+                
+            content = content.strip()
+            
+            # Try to extract JSON if response contains extra text
+            if not content.startswith('{'):
+                import re
+                json_match = re.search(r'\{[^}]+\}', content)
+                if json_match:
+                    content = json_match.group()
+            
+            try:
+                result = json.loads(content)
+                # Look for 'quality' or 'overall_quality' keys
+                score = result.get('quality', result.get('overall_quality', 5))
+                score = max(1, min(10, float(score)))
+                return score / 10.0
+            except (json.JSONDecodeError, ValueError, KeyError):
+                if attempt < max_retries:
+                    print(f"  GPT-5 JSON parse failed on attempt {attempt + 1}, retrying...")
+                    continue
+                else:
+                    print(f"  Warning: GPT-5 JSON parse failed after {max_retries + 1} attempts.")
+                    break
+                    
+        except Exception as e:
+            if attempt < max_retries:
+                print(f"  GPT-5 error on attempt {attempt + 1}: {str(e)[:100]}..., retrying...")
+                continue
+            else:
+                print(f"  Error in GPT-5 evaluation after {max_retries + 1} attempts: {str(e)[:100]}")
+                break
+    
+    # Fallback scoring
+    word_count = len(response.split())
+    sentence_count = len([s for s in response.split('.') if s.strip()])
+    length_score = min(10, max(1, word_count / 10))
+    structure_score = min(10, max(1, sentence_count))
+    avg_score = (length_score + structure_score) / 2
+    return avg_score / 10.0
 
 # Initialize the r1-distill-qwen-14b tokenizer
 tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/deepseek-r1-distill-qwen-14b")
@@ -158,7 +253,7 @@ def generate_chunk_summary(chunk_text: str) -> str:
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
-            max_tokens=20
+            max_completion_tokens=20
         )
         
         summary = response.choices[0].message.content.strip()
@@ -206,7 +301,7 @@ def generate_problem_nickname(problem_text: str) -> str:
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
-            max_tokens=20
+            max_completion_tokens=20
         )
         
         nickname = response.choices[0].message.content.strip()
@@ -260,6 +355,8 @@ def label_chunk(problem_text: str, chunks: List[str], chunk_idx: int) -> Dict:
     except Exception as e:
         print(f"Error labeling chunk {chunk_idx}: {e}")
         return {
+            "function_tags": ["unknown"], 
+            "depends_on": [],
             "categories": ["Unknown"],
             "explanation": f"Error: {str(e)}",
             "chunk": chunks[chunk_idx],
@@ -937,7 +1034,7 @@ def analyze_problem(
     # Initialize embedding model and cache at the problem level
     global embedding_model_cache
     if sentence_model not in embedding_model_cache:
-        embedding_model_cache[sentence_model] = SentenceTransformer(sentence_model).to('cuda:0')
+        embedding_model_cache[sentence_model] = SentenceTransformer(sentence_model).to(get_device())
     embedding_model = embedding_model_cache[sentence_model]
 
     # Create problem-level embedding cache
@@ -1072,7 +1169,7 @@ def analyze_problem(
                         break
                     
             for chunk in labeled_chunks:
-                chunk.update({"accuracy": chunk_accuracies[chunk["chunk_idx"]]})
+                chunk.update({"accuracy": chunk_accuracies.get(chunk["chunk_idx"], 0.0)})
             
             # Save updated labeled chunks
             with open(labeled_chunks_file, 'w', encoding='utf-8') as f:
@@ -1092,87 +1189,87 @@ def analyze_problem(
         # Use the DAG prompt to label all chunks at once
         try:
             labeled_chunks_result = label_chunk(problem["problem"], chunks, 0)
-            
-            # Process the result into the expected format
-            labeled_chunks = []
-            
-            # Prepare arguments for parallel processing
-            chunk_indices = list(range(len(valid_chunk_indices)))
-            
-            # Create args object for process_chunk_importance
-            args_obj = ImportanceArgs(
-                use_absolute=use_absolute,
-                forced_answer_dir=forced_answer_dir,
-                similarity_threshold=similarity_threshold,
-                use_similar_chunks=args.use_similar_chunks,
-                use_abs_importance=args.absolute,
-                top_chunks=args.top_chunks,
-                use_prob_true=args.use_prob_true
-            )
-            
-            # Create a pool of workers
-            with mp.Pool(processes=args.num_processes) as pool:
-                # Create partial function with fixed arguments
-                process_func = partial(
-                    process_chunk_importance,
-                    chunk_info=chunk_info,
-                    chunk_embedding_cache=chunk_embedding_cache,
-                    chunk_accuracies=chunk_accuracies,
-                    args=args_obj,
-                    problem_dir=problem_dir,
-                    forced_answer_accuracies=forced_answer_accuracies,
-                    chunk_answers=chunk_answers
-                )
-                
-                # Process chunks in parallel
-                results = list(tqdm(
-                    pool.imap(process_func, chunk_indices),
-                    total=len(chunk_indices),
-                    desc="Processing chunks"
-                ))
-            
-            # Create labeled chunks with results
-            for i, chunk_idx in enumerate(valid_chunk_indices):
-                chunk = chunks[i]  # Use the filtered chunks list
-                chunk_data = {
-                    "chunk": chunk,
-                    "chunk_idx": chunk_idx
-                }
-                
-                # Generate summary for this chunk
-                try:
-                    summary = generate_chunk_summary(chunk)
-                    chunk_data["summary"] = summary
-                except Exception as e:
-                    print(f"Error generating summary for chunk {chunk_idx}: {e}")
-                    chunk_data["summary"] = "unknown action"
-                
-                # Extract function tags and dependencies for this chunk
-                chunk_key = str(i)
-                if chunk_key in labeled_chunks_result:
-                    chunk_mapping = labeled_chunks_result[chunk_key]
-                    chunk_data["function_tags"] = chunk_mapping.get("function_tags", ["unknown"])
-                    chunk_data["depends_on"] = chunk_mapping.get("depends_on", [])
-                else:
-                    chunk_data["function_tags"] = ["unknown"]
-                    chunk_data["depends_on"] = []
-                
-                # Add metrics from parallel processing
-                for idx, metrics in results:
-                    if idx == i:
-                        chunk_data.update(metrics)
-                        break
-                    
-                chunk_data.update({"accuracy": chunk_accuracies[chunk_idx]})
-                labeled_chunks.append(chunk_data)
-                
-            with open(labeled_chunks_file, 'w', encoding='utf-8') as f:
-                json.dump(labeled_chunks, f, indent=2)
-                
         except Exception as e:
             print(f"Error using DAG prompt for problem {problem_dir.name}: {e}")
-            return None
-    
+            print("Continuing with fallback labels...")
+            labeled_chunks_result = {}
+            
+        # Process the result into the expected format
+        labeled_chunks = []
+        
+        # Prepare arguments for parallel processing
+        chunk_indices = list(range(len(valid_chunk_indices)))
+        
+        # Create args object for process_chunk_importance
+        args_obj = ImportanceArgs(
+            use_absolute=use_absolute,
+            forced_answer_dir=forced_answer_dir,
+            similarity_threshold=similarity_threshold,
+            use_similar_chunks=args.use_similar_chunks,
+            use_abs_importance=args.absolute,
+            top_chunks=args.top_chunks,
+            use_prob_true=args.use_prob_true
+        )
+        
+        # Create a pool of workers
+        with mp.Pool(processes=args.num_processes) as pool:
+            # Create partial function with fixed arguments
+            process_func = partial(
+                process_chunk_importance,
+                chunk_info=chunk_info,
+                chunk_embedding_cache=chunk_embedding_cache,
+                chunk_accuracies=chunk_accuracies,
+                args=args_obj,
+                problem_dir=problem_dir,
+                forced_answer_accuracies=forced_answer_accuracies,
+                chunk_answers=chunk_answers
+            )
+            
+            # Process chunks in parallel
+            results = list(tqdm(
+                pool.imap(process_func, chunk_indices),
+                total=len(chunk_indices),
+                desc="Processing chunks"
+            ))
+        
+        # Create labeled chunks with results
+        for i, chunk_idx in enumerate(valid_chunk_indices):
+            chunk = chunks[i]  # Use the filtered chunks list
+            chunk_data = {
+                "chunk": chunk,
+                "chunk_idx": chunk_idx
+            }
+            
+            # Generate summary for this chunk
+            try:
+                summary = generate_chunk_summary(chunk)
+                chunk_data["summary"] = summary
+            except Exception as e:
+                print(f"Error generating summary for chunk {chunk_idx}: {e}")
+                chunk_data["summary"] = "unknown action"
+            
+            # Extract function tags and dependencies for this chunk
+            chunk_key = str(i)
+            if chunk_key in labeled_chunks_result:
+                chunk_mapping = labeled_chunks_result[chunk_key]
+                chunk_data["function_tags"] = chunk_mapping.get("function_tags", ["unknown"])
+                chunk_data["depends_on"] = chunk_mapping.get("depends_on", [])
+            else:
+                chunk_data["function_tags"] = ["unknown"]
+                chunk_data["depends_on"] = []
+            
+            # Add metrics from parallel processing
+            for idx, metrics in results:
+                if idx == i:
+                    chunk_data.update(metrics)
+                    break
+            
+            chunk_data.update({"accuracy": chunk_accuracies.get(chunk_idx, 0.0)})
+            labeled_chunks.append(chunk_data)
+            
+        with open(labeled_chunks_file, 'w', encoding='utf-8') as f:
+            json.dump(labeled_chunks, f, indent=2)
+
     # Load forced answer data if available
     forced_answer_accuracies_list = None
     if forced_answer_dir:
@@ -2575,6 +2672,561 @@ def process_rollouts(
     
     print(f"{rollout_type.capitalize()} analysis complete. Results saved to {output_dir}")
 
+def process_vision_rollouts(
+    rollouts_dir: Path, 
+    output_dir: Path, 
+    problems: str = None, 
+    max_problems: int = None, 
+    force_relabel: bool = False,
+    similarity_threshold: float = 0.8,
+    sentence_model: str = "all-MiniLM-L6-v2",
+    force_metadata: bool = False
+) -> None:
+    """
+    Process vision/creative rollouts directory - simplified but unified with main pipeline
+    """
+    print(f"Processing vision rollouts in {rollouts_dir}")
+    
+    if not rollouts_dir.exists():
+        print(f"Vision rollouts directory {rollouts_dir} does not exist")
+        return
+    
+    # Find all problem directories
+    problem_dirs = sorted([d for d in rollouts_dir.iterdir() 
+                          if d.is_dir() and d.name.startswith('problem_')])
+    
+    # Filter problems if specified
+    if problems:
+        problem_indices = [int(idx) for idx in problems.split(",")]
+        problem_dirs = [d for d in problem_dirs if int(d.name.split("_")[1]) in problem_indices]
+    
+    # Limit number of problems if specified
+    if max_problems:
+        problem_dirs = problem_dirs[:max_problems]
+    
+    print(f"Found {len(problem_dirs)} vision problem directories")
+    
+    results = []
+    
+    for problem_dir in problem_dirs:
+        print(f"\nAnalyzing vision problem: {problem_dir.name}")
+        try:
+            result = analyze_vision_problem(
+                problem_dir, 
+                force_relabel=force_relabel,
+                similarity_threshold=similarity_threshold,
+                sentence_model=sentence_model,
+                force_metadata=force_metadata
+            )
+            if result:
+                results.append(result)
+        except Exception as e:
+            print(f"Error analyzing {problem_dir}: {e}")
+            continue
+    
+    # Save combined results
+    output_file = output_dir / "vision_analysis_results.json"
+    output_dir.mkdir(exist_ok=True, parents=True)
+    
+    with open(output_file, 'w') as f:
+        # Convert numpy arrays to lists for JSON serialization
+        serializable_results = []
+        for result in results:
+            if not result:
+                continue
+                
+            serializable_result = {}
+            for key, value in result.items():
+                if isinstance(value, np.ndarray):
+                    serializable_result[key] = value.tolist()
+                elif isinstance(value, np.integer):
+                    serializable_result[key] = int(value)
+                elif isinstance(value, np.floating):
+                    serializable_result[key] = float(value)
+                else:
+                    serializable_result[key] = value
+            serializable_results.append(serializable_result)
+            
+        json.dump(serializable_results, f, indent=2)
+    
+    print(f"Vision analysis complete. Results saved to {output_dir}")
+
+def analyze_vision_problem(
+    problem_dir: Path, 
+    force_relabel: bool = False,
+    similarity_threshold: float = 0.8,
+    sentence_model: str = "all-MiniLM-L6-v2",
+    force_metadata: bool = False
+) -> Dict:
+    """Analyze a single vision problem directory - robust implementation with GPT-4 evaluation"""
+    
+    # Load the base solution and chunks
+    solution_file = problem_dir / "solution.json"
+    chunks_file = problem_dir / "chunks.json"
+    
+    if not solution_file.exists():
+        print(f"  No solution.json found in {problem_dir}")
+        return None
+        
+    if not chunks_file.exists():
+        print(f"  No chunks.json found in {problem_dir}")
+        return None
+    
+    with open(solution_file, 'r') as f:
+        solution_data = json.load(f)
+    
+    with open(chunks_file, 'r') as f:
+        chunks_data = json.load(f)
+        chunks = chunks_data.get('chunks', [])
+    
+    if not chunks:
+        print(f"  No chunks found in chunks.json")
+        return None
+    
+    print(f"  Loaded {len(chunks)} chunks from chunks.json")
+    
+    # Check if analysis already exists and skip if not forced
+    results_file = problem_dir / "chunks_labeled.json"
+    if results_file.exists() and not force_relabel and not force_metadata:
+        print(f"  Loading existing analysis from {results_file}")
+        with open(results_file, 'r') as f:
+            return json.load(f)
+    
+    # Create problem data structure compatible with main pipeline
+    problem_data = {
+        'problem_id': problem_dir.name,
+        'prompt': solution_data.get('prompt', ''),
+        'image_path': solution_data.get('image_path', ''),
+        'problem_text': solution_data.get('prompt', '')  # Alias for compatibility
+    }
+    
+    print(f"  Calculating importance metrics...")
+    # Calculate importance metrics using ORIGINAL MATH analysis infrastructure
+    use_gpt5 = True  # Set to False to test without GPT-5
+    
+    # Get the reference text from the correct field
+    reference_text = solution_data.get('analysis', solution_data.get('text', ''))
+    
+    importance_metrics = calculate_vision_importance(
+        problem_dir, 
+        chunks, 
+        reference_text,
+        use_gpt5=use_gpt5
+    )
+    
+    print(f"  Labeling chunks...")
+    # Use proper chunk labeling with GPT-5 (or heuristic fallback)
+    if use_gpt5:
+        chunk_labels = label_creative_chunks(chunks)
+    else:
+        # Simple heuristic labeling
+        chunk_labels = []
+        for i, chunk in enumerate(chunks):
+            chunk_labels.append({
+                'chunk_text': chunk,
+                'chunk_type': 'Analysis',
+                'chunk_summary': chunk[:100] + "..." if len(chunk) > 100 else chunk,
+                'function_tags': ['analysis']
+            })
+    
+    # Create analysis results compatible with main pipeline structure
+    analysis_results = {
+        'problem_data': problem_data,
+        'solution_data': {
+            'analysis': solution_data.get('analysis', ''),
+            'text': solution_data.get('analysis', ''),  # Alias for compatibility
+            'is_valid': solution_data.get('is_correct', 1.0) > 0.5,
+            'solution': solution_data.get('analysis', ''),  # Alias for compatibility
+            'prompt': solution_data.get('question', '')
+        },
+        'chunks': chunks,
+        'labeled_chunks': chunk_labels,
+        'chunk_labels': chunk_labels,  # Alias for compatibility
+        'importance_metrics': importance_metrics,
+        'metadata': {
+            'num_chunks': len(chunks),
+            'similarity_threshold': similarity_threshold,
+            'sentence_model': sentence_model,
+            'force_relabel': force_relabel,
+            'analysis_type': 'vision_creative'
+        }
+    }
+    
+    # Save results
+    with open(results_file, 'w') as f:
+        json.dump(analysis_results, f, indent=2)
+    
+    print(f"  Analysis complete. Results saved to {results_file}")
+    return analysis_results
+    
+    # Save results
+    with open(results_file, 'w') as f:
+        json.dump(analysis_results, f, indent=2)
+    
+    print(f"  Analysis complete. Results saved to {results_file}")
+    return analysis_results
+
+def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_text: str, use_gpt5: bool = True) -> Dict:
+    """
+    Calculate importance metrics for vision tasks using original MATH analysis infrastructure
+    This is now a TRUE EXTENSION of the original analysis, not a parallel implementation
+    """
+    
+    importance_metrics = {
+        'resampling_importance': [],
+        'counterfactual_importance': [], 
+        'quality_variance': []
+    }
+    
+    # === REUSE ORIGINAL EMBEDDING INFRASTRUCTURE ===
+    global embedding_model_cache
+    sentence_model = "all-MiniLM-L6-v2"  # Use same model as MATH analysis
+    
+    if sentence_model not in embedding_model_cache:
+        embedding_model_cache[sentence_model] = SentenceTransformer(sentence_model).to(get_device())
+    embedding_model = embedding_model_cache[sentence_model]
+    
+    # Create problem-level embedding cache (SAME AS ORIGINAL)
+    chunk_embedding_cache = {}
+    
+    # === LOAD AND PROCESS ROLLOUT DATA EXACTLY LIKE ORIGINAL ===
+    chunk_info = {}
+    chunk_qualities = {}  # New: store quality scores instead of accuracies
+    
+    # Collect all unique chunks for embedding (SAME AS ORIGINAL)
+    all_chunks_to_embed = set()
+    
+    print(f"  Processing {len(chunks)} chunks...")
+    for chunk_idx in range(len(chunks)):
+        chunk_dir = problem_dir / f"chunk_{chunk_idx}"
+        solutions_file = chunk_dir / "solutions.json"
+        
+        if not solutions_file.exists():
+            print(f"    Chunk {chunk_idx+1}: No solutions file found")
+            chunk_info[chunk_idx] = []
+            chunk_qualities[chunk_idx] = []
+            continue
+        
+        with open(solutions_file, 'r') as f:
+            rollouts = json.load(f)
+        
+        print(f"    Chunk {chunk_idx+1}: Processing {len(rollouts)} rollouts{'...' if use_gpt5 else ' (heuristic)'}")
+        
+        # Process rollouts into same format as MATH analysis
+        processed_solutions = []
+        rollout_qualities = []
+        
+        for i, rollout in enumerate(rollouts):
+            if rollout.get('is_valid', True):
+                # Evaluate quality using GPT-5 (instead of is_correct)
+                if use_gpt5:
+                    if i % 5 == 0:  # Log every 5th evaluation to avoid spam
+                        print(f"      Evaluating rollout {i+1}/{len(rollouts)} with GPT-5...")
+                    quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), reference_text)
+                else:
+                    # Heuristic fallback
+                    text_length = len(rollout.get('text', '').split())
+                    quality = min(1.0, text_length / 100.0)
+                
+                rollout_qualities.append(quality)
+                
+                # Create solution info compatible with original analysis
+                sol_info = {
+                    "chunk_removed": chunks[chunk_idx] if chunk_idx < len(chunks) else "",
+                    "chunk_resampled": rollout.get('text', '')[:200] + "..." if len(rollout.get('text', '')) > 200 else rollout.get('text', ''),
+                    "full_cot": rollout.get('text', ''),
+                    "is_correct": quality > 0.5,  # Convert quality to binary for compatibility
+                    "quality_score": quality,  # Store actual quality
+                    "answer": "creative_analysis"  # Placeholder
+                }
+                processed_solutions.append(sol_info)
+                
+                # Add chunks to embedding set (SAME AS ORIGINAL)
+                all_chunks_to_embed.add(sol_info['chunk_removed'])
+                all_chunks_to_embed.add(sol_info['chunk_resampled'])
+        
+        chunk_info[chunk_idx] = processed_solutions
+        chunk_qualities[chunk_idx] = rollout_qualities
+        
+        # Show completion stats for this chunk
+        avg_quality = np.mean(rollout_qualities) if rollout_qualities else 0.0
+        print(f"    Chunk {chunk_idx+1}: Complete! {len(rollout_qualities)} rollouts, avg quality: {avg_quality:.3f}")
+    
+    # === COMPUTE EMBEDDINGS IN BATCHES (EXACTLY LIKE ORIGINAL) ===
+    all_chunks_list = list(all_chunks_to_embed)
+    batch_size = 32  # Same as MATH analysis
+    
+    print(f"  Computing embeddings for {len(all_chunks_list)} unique chunks...")
+    for i in tqdm(range(0, len(all_chunks_list), batch_size), desc="Computing embeddings"):
+        batch = all_chunks_list[i:i + batch_size]
+        batch_embeddings = embedding_model.encode(batch, batch_size=batch_size, show_progress_bar=False)
+        for chunk, embedding in zip(batch, batch_embeddings):
+            chunk_embedding_cache[chunk] = embedding
+    
+    # === CALCULATE IMPORTANCE USING ORIGINAL FUNCTIONS ===
+    # Create chunk_accuracies dict using quality scores instead
+    chunk_accuracies = {idx: np.mean(qualities) if qualities else 0.0 
+                       for idx, qualities in chunk_qualities.items()}
+    
+    # Mock args object with necessary attributes
+    class MockArgs:
+        def __init__(self):
+            self.similarity_threshold = 0.8
+            self.use_similar_chunks = False  # Simplified for vision
+            self.use_absolute = False
+    
+    args = MockArgs()
+    
+    for chunk_idx in range(len(chunks)):
+        # Use ORIGINAL resampling importance calculation
+        resampling_imp = calculate_resampling_importance_accuracy(chunk_idx, chunk_accuracies, args)
+        
+        # Use ORIGINAL counterfactual importance calculation with embeddings
+        counterfactual_imp, trajectories_fraction, overdeterminedness = calculate_counterfactual_importance_accuracy(
+            chunk_idx, chunk_info, chunk_embedding_cache, chunk_accuracies, args
+        )
+        
+        # Quality variance (vision-specific addition)
+        current_qualities = chunk_qualities.get(chunk_idx, [])
+        quality_variance = np.var(current_qualities) if current_qualities else 0.0
+        
+        importance_metrics['resampling_importance'].append(float(resampling_imp))
+        importance_metrics['counterfactual_importance'].append(float(counterfactual_imp))
+        importance_metrics['quality_variance'].append(float(quality_variance))
+        
+        print(f"    Chunk {chunk_idx+1}: Resampling={resampling_imp:.3f}, Counterfactual={counterfactual_imp:.3f}, Variance={quality_variance:.3f}")
+    
+    print("  Importance calculation complete using ORIGINAL MATH analysis infrastructure!")
+    return importance_metrics
+    
+    # Now calculate importance metrics similar to original approach
+    for chunk_idx in range(len(chunks)):
+        current_qualities = chunk_qualities.get(chunk_idx, [])
+        
+        if not current_qualities:
+            importance_metrics['resampling_importance'].append(0.0)
+            importance_metrics['counterfactual_importance'].append(0.0)
+            importance_metrics['quality_variance'].append(0.0)
+            continue
+        
+        # Resampling importance: difference from baseline (like resampling accuracy)
+        avg_quality = np.mean(current_qualities)
+        resampling_importance = baseline_quality - avg_quality
+        
+        # Quality variance: how much variation in quality when resampling this chunk
+        quality_variance = np.var(current_qualities)
+        
+        # Counterfactual importance: compare with next chunk (simplified version of original)
+        next_chunk_idx = chunk_idx + 1
+        if next_chunk_idx < len(chunks) and next_chunk_idx in chunk_qualities:
+            next_qualities = chunk_qualities[next_chunk_idx]
+            if next_qualities:
+                next_avg_quality = np.mean(next_qualities)
+                counterfactual_importance = abs(avg_quality - next_avg_quality)
+            else:
+                counterfactual_importance = quality_variance  # Fallback to variance
+        else:
+            counterfactual_importance = quality_variance  # Use variance as proxy
+        
+        print(f"    Metrics - Resampling: {resampling_importance:.3f}, Counterfactual: {counterfactual_importance:.3f}, Variance: {quality_variance:.3f}")
+        
+        importance_metrics['resampling_importance'].append(float(resampling_importance))
+        importance_metrics['counterfactual_importance'].append(float(counterfactual_importance))
+        importance_metrics['quality_variance'].append(float(quality_variance))
+    
+    print("  Importance calculation complete.")
+    return importance_metrics
+
+def evaluate_creative_quality(response: str, reference: str = "", criteria: List[str] = None) -> Dict[str, float]:
+    """
+    Use GPT-4 to evaluate creative/artistic analysis quality
+    """
+    
+    if criteria is None:
+        criteria = [
+            "Artistic knowledge and terminology usage",
+            "Depth of visual observation", 
+            "Coherence and logical flow",
+            "Insightfulness of interpretation",
+            "Overall analysis quality"
+        ]
+    
+    # Create evaluation prompt with clearer instructions
+    eval_prompt = f"""Please evaluate this art/creative analysis on a scale of 1-10 for each criterion.
+
+Analysis to evaluate:
+"{response[:1000]}{'...' if len(response) > 1000 else ''}"
+
+{f'Reference analysis: "{reference[:500]}{'...' if len(reference) > 500 else ''}"' if reference else ''}
+
+Evaluation criteria:
+{chr(10).join([f"- {criterion}" for criterion in criteria])}
+
+Return ONLY a valid JSON object with these exact keys:
+{{"artistic_knowledge": 5, "visual_observation": 5, "coherence": 5, "insightfulness": 5, "overall_quality": 5}}
+
+Replace the 5s with your actual scores from 1-10. Do not include any other text."""
+    
+    try:
+        response_obj = client.chat.completions.create(
+            model="gpt-5-chat-latest",
+            messages=[{"role": "user", "content": eval_prompt}],
+            max_completion_tokens=100    # Limit response length
+        )
+        
+        content = response_obj.choices[0].message.content
+        if not content:
+            raise ValueError("Empty response from GPT-4")
+            
+        content = content.strip()
+        print(f"GPT-4 response: '{content[:100]}{'...' if len(content) > 100 else ''}'")
+        
+        # Try to extract JSON if response contains extra text
+        if not content.startswith('{'):
+            # Look for JSON-like content
+            import re
+            json_match = re.search(r'\{[^}]+\}', content)
+            if json_match:
+                content = json_match.group()
+            else:
+                raise ValueError("No JSON found in response")
+        
+        result = json.loads(content)
+        
+        # Validate all required keys are present
+        required_keys = ["artistic_knowledge", "visual_observation", "coherence", "insightfulness", "overall_quality"]
+        for key in required_keys:
+            if key not in result:
+                result[key] = 5  # Default score
+            # Ensure score is in valid range
+            result[key] = max(1, min(10, float(result[key])))
+        
+        # Normalize scores to 0-1 range
+        normalized_scores = {k: v/10.0 for k, v in result.items()}
+        
+        return normalized_scores
+        
+    except Exception as e:
+        print(f"Error in GPT-4 evaluation: {e}")
+        # For debugging, let's see what we actually got
+        try:
+            if 'response_obj' in locals():
+                print(f"GPT-4 response was: '{response_obj.choices[0].message.content[:200]}...'")
+        except:
+            pass
+        
+        # Fallback to basic heuristic evaluation
+        # Simple length and coherence heuristics
+        word_count = len(response.split())
+        sentence_count = len([s for s in response.split('.') if s.strip()])
+        
+        # Basic scoring based on length and structure
+        length_score = min(10, max(1, word_count / 10))  # 1 point per 10 words, max 10
+        structure_score = min(10, max(1, sentence_count))  # 1 point per sentence, max 10
+        avg_score = (length_score + structure_score) / 2
+        
+        return {
+            "artistic_knowledge": avg_score / 10.0,
+            "visual_observation": avg_score / 10.0,
+            "coherence": avg_score / 10.0, 
+            "insightfulness": avg_score / 10.0,
+            "overall_quality": avg_score / 10.0
+        }
+
+def label_creative_chunks(chunks: List[str]) -> List[Dict]:
+    """
+    Label reasoning chunks for creative/artistic analysis
+    """
+    
+    creative_categories = {
+        "Initial Observation": "First impressions and basic visual elements noticed",
+        "Technical Analysis": "Discussion of artistic techniques, materials, composition", 
+        "Historical Context": "References to art movements, periods, or influences",
+        "Emotional Interpretation": "Discussion of mood, feeling, or emotional impact",
+        "Symbolic Analysis": "Interpretation of meaning, symbolism, or deeper significance",
+        "Comparative Analysis": "Comparisons to other works, artists, or styles",
+        "Personal Response": "Subjective reactions or personal connections",
+        "Conclusion": "Final synthesis or overall assessment",
+        "Unknown": "Does not fit other categories"
+    }
+    
+    chunk_labels = []
+    
+    print(f"  Labeling {len(chunks)} chunks with GPT-4...")
+    for i, chunk in enumerate(chunks):
+        print(f"    Labeling chunk {i+1}/{len(chunks)}... ", end="", flush=True)
+        
+        # Truncate very long chunks for efficiency
+        chunk_text = chunk[:500] + "..." if len(chunk) > 500 else chunk
+        
+        label_prompt = f"""Categorize this art analysis step into one of these categories:
+
+{chr(10).join([f"{cat}: {desc}" for cat, desc in creative_categories.items()])}
+
+Analysis step to categorize:
+"{chunk_text}"
+
+Respond with ONLY the category name (e.g., "Technical Analysis"). No explanation."""
+        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-5-chat-latest",
+                messages=[{"role": "user", "content": label_prompt}],
+                max_completion_tokens=20
+            )
+            
+            label = response.choices[0].message.content.strip().replace('"', '')
+            
+            # Validate the label is one of our categories
+            if label not in creative_categories:
+                # Try to find a close match
+                label_lower = label.lower()
+                for cat in creative_categories:
+                    if cat.lower() in label_lower or label_lower in cat.lower():
+                        label = cat
+                        break
+                else:
+                    label = "Unknown"
+            
+            # Create chunk label with proper format for compatibility
+            chunk_label = {
+                'chunk_text': chunk,
+                'chunk_type': label,
+                'chunk_summary': chunk[:100] + "..." if len(chunk) > 100 else chunk,
+                'function_tags': [label.lower().replace(' ', '_')]
+            }
+            
+            chunk_labels.append(chunk_label)
+            print(f"✓ {label}")
+            
+        except Exception as e:
+            print(f"✗ Error: {e}")
+            # Fallback: simple heuristic labeling
+            chunk_lower = chunk.lower()
+            if any(word in chunk_lower for word in ['color', 'composition', 'technique', 'brush', 'paint']):
+                label = "Technical Analysis"
+            elif any(word in chunk_lower for word in ['feel', 'emotion', 'mood', 'atmosphere']):
+                label = "Emotional Interpretation"
+            elif any(word in chunk_lower for word in ['symbol', 'meaning', 'represent', 'signify']):
+                label = "Symbolic Analysis"
+            elif any(word in chunk_lower for word in ['first', 'initially', 'looking', 'see']):
+                label = "Initial Observation"
+            elif any(word in chunk_lower for word in ['conclude', 'overall', 'summary', 'final']):
+                label = "Conclusion"
+            else:
+                label = "Unknown"
+            
+            chunk_label = {
+                'chunk_text': chunk,
+                'chunk_type': label,
+                'chunk_summary': chunk[:100] + "..." if len(chunk) > 100 else chunk,
+                'function_tags': [label.lower().replace(' ', '_')]
+            }
+            chunk_labels.append(chunk_label)
+            print(f"✓ {label} (heuristic)")
+    
+    return chunk_labels
+
 def analyze_dag_token_frequencies(dag_dir: Path, output_dir: Path) -> None:
     """
     Analyze token frequencies from DAG-improved chunks.
@@ -3354,21 +4006,41 @@ def main():
     incorrect_rollouts_dir = Path(args.incorrect_rollouts_dir) if args.incorrect_rollouts_dir and len(args.incorrect_rollouts_dir) > 0 else None
     correct_forced_answer_dir = Path(args.correct_forced_answer_rollouts_dir) if args.correct_forced_answer_rollouts_dir and len(args.correct_forced_answer_rollouts_dir) > 0 else None
     incorrect_forced_answer_dir = Path(args.incorrect_forced_answer_rollouts_dir) if args.incorrect_forced_answer_rollouts_dir and len(args.incorrect_forced_answer_rollouts_dir) > 0 else None
+    vision_creative_dir = Path(args.vision_creative_rollouts_dir) if args.vision_creative_rollouts_dir and len(args.vision_creative_rollouts_dir) > 0 else None
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
     
+    # Determine dataset type
+    is_vision_dataset = vision_creative_dir is not None
+    
     # Check if at least one rollouts directory is provided
-    if not correct_rollouts_dir and not incorrect_rollouts_dir:
-        print("Error: At least one of --correct_rollouts_dir or --incorrect_rollouts_dir must be provided")
+    if not correct_rollouts_dir and not incorrect_rollouts_dir and not vision_creative_dir:
+        print("Error: At least one of --correct_rollouts_dir, --incorrect_rollouts_dir, or --vision_creative_rollouts_dir must be provided")
         return
     
-    # Analyze response length statistics across both correct and incorrect rollouts
-    if correct_rollouts_dir and incorrect_rollouts_dir:
+    # Analyze response length statistics across both correct and incorrect rollouts (for MATH)
+    if correct_rollouts_dir and incorrect_rollouts_dir and not is_vision_dataset:
         print("\n=== Analyzing Response Length Statistics ===\n")
         analyze_response_length_statistics(correct_rollouts_dir, incorrect_rollouts_dir, output_dir)
     
-    # Process each rollout type if provided
-    if correct_rollouts_dir:
+    # Process vision/creative rollouts
+    if is_vision_dataset and vision_creative_dir:
+        print(f"\n=== Processing VISION/CREATIVE rollouts from {vision_creative_dir} ===\n")
+        vision_output_dir = output_dir / "creative_analysis"
+        vision_output_dir.mkdir(exist_ok=True, parents=True)
+        process_vision_rollouts(
+            rollouts_dir=vision_creative_dir,
+            output_dir=vision_output_dir,
+            problems=args.problems,
+            max_problems=args.max_problems,
+            force_relabel=args.force_relabel,
+            similarity_threshold=args.similarity_threshold,
+            sentence_model=args.sentence_model,
+            force_metadata=args.force_metadata
+        )
+    
+    # Process each rollout type if provided and exists
+    if correct_rollouts_dir and correct_rollouts_dir.exists():
         print(f"\n=== Processing CORRECT rollouts from {correct_rollouts_dir} ===\n")
         correct_output_dir = output_dir / "correct_base_solution"
         correct_output_dir.mkdir(exist_ok=True, parents=True)
@@ -3449,7 +4121,7 @@ def main():
             else:
                 print("No forced importance metric found in results, skipping specialized analysis")
     
-    if incorrect_rollouts_dir:
+    if incorrect_rollouts_dir and incorrect_rollouts_dir.exists():
         print(f"\n=== Processing INCORRECT rollouts from {incorrect_rollouts_dir} ===\n")
         incorrect_output_dir = output_dir / "incorrect_base_solution"
         incorrect_output_dir.mkdir(exist_ok=True, parents=True)

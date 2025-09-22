@@ -27,6 +27,38 @@ Here is what other files do:
 * `misc-experiments/`: This folder includes miscellaneous experiment scripts. Some of them are ongoing work.
 * `whitebox-analyses/`: This folder includes the white-box experiments in the paper, including **attention pattern analysis** (e.g., *receiver heads*) and **attention suppression**.
 
+## Vision Rollout Generation
+
+Added support for vision-language models and creative tasks by extending the rollout generation pipeline:
+
+* **`generate_vision_rollouts.py`**: New script that generates rollouts for creative/artistic analysis using vision-language models like Qwen2.5-VL-7B-Instruct
+* **Multimodal input handling**: Processes images alongside text prompts for vision-based creative analysis tasks
+* **Compatible output format**: Generates the same rollout structure as the original MATH pipeline, enabling seamless integration with existing analysis tools
+* **Creative evaluation**: Implements quality-based evaluation for subjective creative tasks instead of exact answer matching
+
+The vision generator maintains the same chunk-based rollout structure as the original, allowing creative vision tasks to benefit from the same sophisticated importance analysis framework.
+
+**Usage:**
+```bash
+python generate_vision_rollouts.py -d sample_vision_dataset.json -m Qwen/Qwen2.5-VL-7B-Instruct -np 10 -nr 50
+```
+
+## Creative/Vision Analysis Extension
+
+Extended the original MATH-focused analysis pipeline to handle subjective creative and artistic tasks. This extension:
+
+* **Reuses the core algorithms**: The same embedding models, similarity calculations, and importance metrics from the original MATH analysis are applied to creative responses
+* **Replaces correctness with quality**: Instead of binary correct/incorrect evaluation, we use GPT-5-nano to score creative response quality on a continuous scale (0-1)
+* **Maintains full compatibility**: Both MATH and creative analysis run through the same unified pipeline in `analyze_rollouts.py`
+* **Supports vision-language models**: Works with models like Qwen2.5-VL-7B-Instruct for image-based creative analysis
+
+The extension demonstrates that the thought anchor framework generalizes beyond mathematical reasoning to subjective creative domains, while preserving all the sophistication of the original analysis infrastructure.
+
+**Usage:**
+```bash
+python analyze_rollouts.py -vc vision_rollouts/[model]/[params]/creative_analysis
+```
+
 ## Citation
 
 Please cite our work if you are using our code or dataset.
