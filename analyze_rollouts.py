@@ -149,7 +149,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 if not client.api_key:
     raise ValueError("OPENAI_API_KEY not found in .env file")
 
-def evaluate_creative_quality_gpt5(response: str, reference: str = "", criteria: List[str] = None, max_retries: int = 2) -> float:
+def evaluate_creative_quality_gpt5(response: str, evaluation_criteria: dict = None, max_retries: int = 2) -> float:
     """
     Use GPT-5 Nano to evaluate creative/artistic analysis quality
     Returns a single quality score from 0.0 to 1.0
@@ -157,14 +157,20 @@ def evaluate_creative_quality_gpt5(response: str, reference: str = "", criteria:
     
     # Truncate response more aggressively to ensure consistent token usage
     truncated_response = response[:600] if len(response) > 600 else response
-    truncated_reference = reference[:150] if len(reference) > 150 else reference
     
-    # Simplified evaluation prompt optimized for GPT-5-nano
-    eval_prompt = f"""Rate this art analysis quality (1-10):
+    # Use custom evaluation criteria if provided, otherwise fall back to simple prompt
+    if evaluation_criteria and 'prompt' in evaluation_criteria:
+        eval_prompt = f"""{evaluation_criteria['prompt']}
 
+Response to evaluate:
 "{truncated_response}"
 
-{f'Reference: "{truncated_reference}"' if truncated_reference.strip() else ''}
+JSON: {{"quality": YOUR_SCORE_1_TO_10}}"""
+    else:
+        # Fallback to simple evaluation
+        eval_prompt = f"""Rate this art analysis quality (1-10):
+
+"{truncated_response}"
 
 JSON: {{"quality": YOUR_NUMBER}}"""
 
@@ -2814,6 +2820,7 @@ def analyze_vision_problem(
     # Load the base solution and chunks
     solution_file = problem_dir / "solution.json"
     chunks_file = problem_dir / "chunks.json"
+    problem_file = problem_dir / "problem.json"
     
     if not solution_file.exists():
         print(f"  No solution.json found in {problem_dir}")
@@ -2822,13 +2829,20 @@ def analyze_vision_problem(
     if not chunks_file.exists():
         print(f"  No chunks.json found in {problem_dir}")
         return None
-    
+
     with open(solution_file, 'r') as f:
         solution_data = json.load(f)
-    
+
     with open(chunks_file, 'r') as f:
         chunks_data = json.load(f)
         chunks = chunks_data.get('chunks', [])
+        
+    # Load problem data if available (for evaluation criteria)
+    evaluation_criteria = {}
+    if problem_file.exists():
+        with open(problem_file, 'r') as f:
+            problem_data = json.load(f)
+            evaluation_criteria = problem_data.get('evaluation_criteria', {})
     
     if not chunks:
         print(f"  No chunks found in chunks.json")
@@ -2862,6 +2876,7 @@ def analyze_vision_problem(
         problem_dir, 
         chunks, 
         reference_text,
+        evaluation_criteria,
         use_gpt5=use_gpt5
     )
     
@@ -2917,7 +2932,7 @@ def analyze_vision_problem(
     print(f"  Analysis complete. Results saved to {results_file}")
     return analysis_results
 
-def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_text: str, use_gpt5: bool = True) -> Dict:
+def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_text: str, evaluation_criteria: dict = None, use_gpt5: bool = True) -> Dict:
     """
     Calculate importance metrics for vision tasks using original MATH analysis infrastructure
     This is now a TRUE EXTENSION of the original analysis, not a parallel implementation
@@ -2997,7 +3012,7 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
                 if use_gpt5:
                     if i % 5 == 0:  # Log every 5th evaluation to avoid spam
                         print(f"      Evaluating rollout {i+1}/{len(rollouts)} with GPT-5...")
-                    quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), reference_text)
+                    quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), evaluation_criteria)
                 else:
                     # Heuristic fallback
                     text_length = len(rollout.get('text', '').split())

@@ -170,12 +170,22 @@ def load_vision_problems(dataset_path: str, num_problems: int = None) -> List[tu
             # Handle both absolute and relative paths
             if not os.path.isabs(img_path):
                 img_path = os.path.join(os.path.dirname(dataset_path), img_path)
-            images.append(Image.open(img_path).convert('RGB'))
+            
+            # Load and resize image to prevent memory issues
+            img = Image.open(img_path).convert('RGB')
+            
+            # Resize if image is too large (keep aspect ratio)
+            max_size = 1024  # Maximum dimension
+            if max(img.size) > max_size:
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+                print(f"  Resized {os.path.basename(img_path)} to {img.size}")
+            
+            images.append(img)
         
         problem = {
             'question': item['question'],
             'images': images,
-            'ground_truth': item.get('ground_truth', ''),
+            'evaluation_criteria': item.get('evaluation_criteria', {}),
             'metadata': item.get('metadata', {})
         }
         problems.append((i, problem))
@@ -217,7 +227,7 @@ async def process_problem(problem_idx: int, problem: Dict, generator: QwenVision
         # Save problem without images (serialize separately)
         problem_data = {
             'question': problem['question'],
-            'ground_truth': problem['ground_truth'],
+            'evaluation_criteria': problem.get('evaluation_criteria', {}),
             'metadata': problem['metadata'],
             'image_count': len(problem['images'])
         }
@@ -236,8 +246,8 @@ async def process_problem(problem_idx: int, problem: Dict, generator: QwenVision
             max_tokens=args.max_tokens
         )
         
-        # Evaluate base solution
-        is_correct = evaluate_creative_response(base_analysis, problem['ground_truth'])
+        # Evaluate base solution (simple heuristic since no ground truth)
+        is_correct = evaluate_creative_response(base_analysis)
         
         solution_data = {
             'problem_idx': problem_idx,
