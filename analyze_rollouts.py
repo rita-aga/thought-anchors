@@ -185,10 +185,10 @@ JSON: {{"quality": YOUR_NUMBER}}"""
             increment_openai_counter()
             
             response_obj = client.chat.completions.create(
-                model="gpt-5-nano-2025-08-07",
+                model="gpt-5",
                 messages=[{"role": "user", "content": eval_prompt}],
                 max_completion_tokens=current_token_limit
-                # No temperature - GPT-5-nano only supports default (1.0)
+                # No temperature - GPT-5 only supports default (1.0)
             )
             
             content = response_obj.choices[0].message.content
@@ -2975,17 +2975,56 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
     
     print(f"  Processing {len(chunks)} chunks (starting from chunk {len(processed_chunks) + 1})...")
     for chunk_idx in range(len(chunks)):
-        # Skip already processed chunks
+        # Skip already processed chunks for embedding but still need quality evaluation
         if chunk_idx in processed_chunks:
-            # Still need to load the data for final analysis
+            # Load existing rollouts but evaluate quality scores properly
             chunk_dir = problem_dir / f"chunk_{chunk_idx}"
             solutions_file = chunk_dir / "solutions.json"
             if solutions_file.exists():
                 with open(solutions_file, 'r') as f:
                     rollouts = json.load(f)
-                # Quick load without re-evaluation
-                chunk_qualities[chunk_idx] = [r.get('quality_score', 0.5) for r in rollouts if r.get('is_valid', True)]
-                chunk_info[chunk_idx] = [{"chunk_removed": chunks[chunk_idx], "quality_score": q} for q in chunk_qualities[chunk_idx]]
+                
+                # Evaluate quality scores properly instead of defaulting to 0.5
+                rollout_qualities = []
+                processed_solutions = []
+                print(f"    Chunk {chunk_idx+1}: Re-evaluating quality for {len(rollouts)} existing rollouts...")
+                
+                for i, rollout in enumerate(rollouts):
+                    if rollout.get('is_valid', True):
+                        # Check if quality_score already exists, otherwise evaluate
+                        if 'quality_score' in rollout and rollout['quality_score'] != 0.5:
+                            quality = rollout['quality_score']
+                        else:
+                            # Evaluate quality using GPT-5 (or heuristic)
+                            if use_gpt5:
+                                quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), evaluation_criteria)
+                            else:
+                                # Heuristic fallback
+                                text_length = len(rollout.get('text', '').split())
+                                quality = min(1.0, text_length / 100.0)
+                        
+                        rollout_qualities.append(quality)
+                        
+                        # Create solution info
+                        sol_info = {
+                            "chunk_removed": chunks[chunk_idx],
+                            "chunk_resampled": rollout.get('text', '')[:200] + "..." if len(rollout.get('text', '')) > 200 else rollout.get('text', ''),
+                            "full_cot": rollout.get('text', ''),
+                            "is_correct": quality > 0.5,
+                            "quality_score": quality,
+                            "answer": "creative_analysis"
+                        }
+                        processed_solutions.append(sol_info)
+                        
+                        # Add chunks to embedding set
+                        all_chunks_to_embed.add(sol_info['chunk_removed'])
+                        all_chunks_to_embed.add(sol_info['chunk_resampled'])
+                
+                chunk_qualities[chunk_idx] = rollout_qualities
+                chunk_info[chunk_idx] = processed_solutions
+                
+                avg_quality = np.mean(rollout_qualities) if rollout_qualities else 0.0
+                print(f"    Chunk {chunk_idx+1}: Quality evaluation complete! Avg quality: {avg_quality:.3f}, Variance: {np.var(rollout_qualities):.6f}")
             continue
         chunk_dir = problem_dir / f"chunk_{chunk_idx}"
         solutions_file = chunk_dir / "solutions.json"
@@ -3037,6 +3076,22 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
         
         chunk_info[chunk_idx] = processed_solutions
         chunk_qualities[chunk_idx] = rollout_qualities
+        
+        # Save quality scores back to rollout files for future use
+        updated_rollouts = []
+        quality_idx = 0
+        for rollout in rollouts:
+            if rollout.get('is_valid', True):
+                rollout_copy = rollout.copy()
+                rollout_copy['quality_score'] = rollout_qualities[quality_idx]
+                quality_idx += 1
+                updated_rollouts.append(rollout_copy)
+            else:
+                updated_rollouts.append(rollout)
+        
+        # Write back the updated rollouts with quality scores
+        with open(solutions_file, 'w') as f:
+            json.dump(updated_rollouts, f, indent=2)
         
         # Show completion stats for this chunk
         avg_quality = np.mean(rollout_qualities) if rollout_qualities else 0.0

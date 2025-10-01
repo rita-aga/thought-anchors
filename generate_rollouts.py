@@ -18,6 +18,7 @@ load_dotenv()
 # Get API keys
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/completions"
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NOVITA_API_KEY = os.getenv("NOVITA_API_KEY")
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 FIREWORKS_API_KEY = os.getenv("FIREWORKS_API_KEY")
@@ -43,7 +44,7 @@ parser.add_argument('-ic', '--include_chunks', type=str, default=None, help='Com
 parser.add_argument('-ty', '--type', type=str, default=None, help='Problem type filter')
 parser.add_argument('-l', '--level', type=str, default="Level 5", help='Problem level filter')
 parser.add_argument('-sp', '--split', type=str, default='train', choices=['train', 'test'], help='Dataset split to use')
-parser.add_argument('-p', '--provider', type=str, default="Novita", choices=['Novita', 'Together', 'Fireworks', 'Local'], help='Provider to use') # "Together"
+parser.add_argument('-p', '--provider', type=str, default="Novita", choices=['Novita', 'Together', 'Fireworks', 'OpenAI', 'Local'], help='Provider to use')
 parser.add_argument('-or', '--use_openrouter', default=False, action='store_true', help='Use OpenRouter API')
 parser.add_argument('-fp', '--frequency_penalty', type=float, default=None, help='Frequency penalty parameter')
 parser.add_argument('-pp', '--presence_penalty', type=float, default=None, help='Presence penalty parameter')
@@ -284,6 +285,47 @@ async def make_api_request(prompt: str, temperature: float, top_p: float, max_to
         
         api_url = "https://api.fireworks.ai/inference/v1/completions"
     
+    elif args.provider == "OpenAI":
+        # OpenAI API request
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # Map model name for OpenAI (if using default, switch to appropriate ChatGPT model)
+        openai_model = args.model
+        if args.model == "deepseek/deepseek-r1-distill-qwen-14b":  # Default model
+            openai_model = "gpt-4o"  # Use GPT-4o as the default ChatGPT model
+        
+        # Special handling for GPT-5 which may require different parameters
+        if "gpt-5" in openai_model.lower():
+            # GPT-5-nano: Use higher token limit to account for reasoning tokens
+            adjusted_max_tokens = max_tokens * 2  # Double the limit for GPT-5
+            payload = {
+                "model": openai_model,
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "max_completion_tokens": adjusted_max_tokens,  # GPT-5 uses max_completion_tokens
+                "n": 1,
+                "stream": False
+                # No temperature - GPT-5-nano only supports default (1.0)
+            }
+        else:
+            payload = {
+                "model": openai_model,
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": temperature,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+                "n": 1,
+                "stream": False  # OpenAI chat completions typically don't stream for this use case
+            }
+        
+        api_url = "https://api.openai.com/v1/chat/completions"
+    
     # Add optional parameters for all APIs
     if args.frequency_penalty is not None:
         payload["frequency_penalty"] = args.frequency_penalty
@@ -346,6 +388,12 @@ async def make_api_request(prompt: str, temperature: float, top_p: float, max_to
                 elif args.provider == "Fireworks":
                     return {
                         "text": result["choices"][0]["text"],
+                        "finish_reason": result["choices"][0].get("finish_reason", ""),
+                        "usage": result.get("usage", {})
+                    }
+                elif args.provider == "OpenAI":
+                    return {
+                        "text": result["choices"][0]["message"]["content"],
                         "finish_reason": result["choices"][0].get("finish_reason", ""),
                         "usage": result.get("usage", {})
                     }
@@ -796,3 +844,5 @@ elif args.provider == "Together" and not TOGETHER_API_KEY:
     raise ValueError("TOGETHER_API_KEY not found in environment variables")
 elif args.provider == "Fireworks" and not FIREWORKS_API_KEY:
     raise ValueError("FIREWORKS_API_KEY not found in environment variables")
+elif args.provider == "OpenAI" and not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY not found in environment variables")

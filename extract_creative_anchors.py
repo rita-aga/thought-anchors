@@ -15,17 +15,17 @@ def load_creative_results(results_path: str) -> List[Dict]:
     with open(results_path, 'r') as f:
         return json.load(f)
 
-def extract_top_anchors(results: List[Dict], metric: str = "resampling_importance", top_k: int = 10) -> List[Tuple]:
+def extract_top_anchors(results: List[Dict], metric: str = "resampling_importance", top_k: int = 10) -> Tuple[List[Tuple], List[Tuple]]:
     """
     Extract top thought anchors from creative analysis
     
     Args:
         results: List of problem results
         metric: Which importance metric to use (resampling_importance, counterfactual_importance, quality_variance)
-        top_k: How many top anchors to return
+        top_k: How many top anchors to return for each category (positive and negative)
     
     Returns:
-        List of (importance_score, chunk_text, chunk_type, problem_id, chunk_idx) tuples
+        Tuple of (positive_anchors, negative_anchors) - both sorted by magnitude
     """
     all_anchors = []
     
@@ -49,10 +49,17 @@ def extract_top_anchors(results: List[Dict], metric: str = "resampling_importanc
                 i
             ))
     
-    # Sort by importance score (descending - positive first, then negative by magnitude)
-    all_anchors.sort(key=lambda x: x[0], reverse=True)
+    # Separate positive and negative anchors
+    positive_anchors = [a for a in all_anchors if a[0] > 0]
+    negative_anchors = [a for a in all_anchors if a[0] < 0]
     
-    return all_anchors[:top_k]
+    # Sort positive by score (highest first)
+    positive_anchors.sort(key=lambda x: x[0], reverse=True)
+    
+    # Sort negative by magnitude (most negative first) 
+    negative_anchors.sort(key=lambda x: x[0])
+    
+    return positive_anchors[:top_k], negative_anchors[:top_k]
 
 def analyze_anchor_patterns(results: List[Dict]) -> Dict:
     """Analyze patterns in creative thought anchors"""
@@ -83,63 +90,114 @@ def analyze_anchor_patterns(results: List[Dict]) -> Dict:
             avg_importance_by_type[chunk_type] = {
                 'avg_importance': np.mean(scores),
                 'max_importance': np.max(scores),
+                'min_importance': np.min(scores),
                 'count': len(scores),
                 'std': np.std(scores)
             }
     
     return avg_importance_by_type
 
-def print_top_anchors(anchors: List[Tuple], metric: str):
+def print_top_anchors(positive_anchors: List[Tuple], negative_anchors: List[Tuple], metric: str, output_file=None):
     """Print top anchors in a nice format"""
-    print(f"\n🔗 TOP CREATIVE THOUGHT ANCHORS ({metric.replace('_', ' ').title()})")
-    print("=" * 80)
-    print("\n🔥 POSITIVE ANCHORS (Important - removing these HURTS quality):")
-    print("-" * 60)
     
-    positive_anchors = [a for a in anchors if a[0] > 0]
-    negative_anchors = [a for a in anchors if a[0] < 0]
+    def write_line(text, file=None):
+        print(text)
+        if file:
+            file.write(text + '\n')
     
-    for i, (score, chunk_text, chunk_type, problem_id, chunk_idx) in enumerate(positive_anchors[:5], 1):
-        display_text = chunk_text[:100] + "..." if len(chunk_text) > 100 else chunk_text
-        print(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}")
-        print(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}")
-        print(f"    Text: {display_text}")
+    # Open output file if specified
+    f = None
+    if output_file:
+        f = open(output_file, 'w', encoding='utf-8')
+        print(f"Saving detailed output to: {output_file}")
     
-    print(f"\n❌ NEGATIVE ANCHORS (Harmful - removing these IMPROVES quality):")
-    print("-" * 60)
+    try:
+        write_line(f"\n🔗 TOP CREATIVE THOUGHT ANCHORS ({metric.replace('_', ' ').title()})", f)
+        write_line("=" * 80, f)
+        
+        write_line("\n🔥 POSITIVE ANCHORS (Important - removing these HURTS quality):", f)
+        write_line("-" * 60, f)
+        
+        if positive_anchors:
+            for i, (score, chunk_text, chunk_type, problem_id, chunk_idx) in enumerate(positive_anchors, 1):
+                # For terminal: truncate text
+                display_text = chunk_text[:100] + "..." if len(chunk_text) > 100 else chunk_text
+                print(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}")
+                print(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}")
+                print(f"    Text: {display_text}")
+                
+                # For file: show full text
+                if f:
+                    f.write(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}\n")
+                    f.write(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}\n")
+                    f.write(f"    Full Text: {chunk_text}\n")
+        else:
+            write_line("    No positive anchors found.", f)
+        
+        write_line(f"\n❌ NEGATIVE ANCHORS (Harmful - removing these IMPROVES quality):", f)
+        write_line("-" * 60, f)
+        
+        if negative_anchors:
+            for i, (score, chunk_text, chunk_type, problem_id, chunk_idx) in enumerate(negative_anchors, 1):
+                # For terminal: truncate text
+                display_text = chunk_text[:100] + "..." if len(chunk_text) > 100 else chunk_text
+                print(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}")
+                print(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}")
+                print(f"    Text: {display_text}")
+                
+                # For file: show full text
+                if f:
+                    f.write(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}\n")
+                    f.write(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}\n")
+                    f.write(f"    Full Text: {chunk_text}\n")
+        else:
+            write_line("    No negative anchors found.", f)
+        
+        # Summary stats
+        all_scores = [a[0] for a in positive_anchors + negative_anchors]
+        if all_scores:
+            write_line(f"\n📈 SUMMARY STATISTICS", f)
+            write_line(f"Positive anchors: {len(positive_anchors)}", f)
+            write_line(f"Negative anchors: {len(negative_anchors)}", f)
+            write_line(f"Average score: {np.mean(all_scores):.3f}", f)
+            write_line(f"Most positive: {max(all_scores):.3f}", f)
+            write_line(f"Most negative: {min(all_scores):.3f}", f)
     
-    # Sort negative by magnitude (most negative first)
-    negative_anchors.sort(key=lambda x: x[0])
-    
-    for i, (score, chunk_text, chunk_type, problem_id, chunk_idx) in enumerate(negative_anchors[:5], 1):
-        display_text = chunk_text[:100] + "..." if len(chunk_text) > 100 else chunk_text
-        print(f"\n{i:2d}. [{chunk_type}] Score: {score:+.3f}")
-        print(f"    Problem: {problem_id}, Chunk: {chunk_idx + 1}")
-        print(f"    Text: {display_text}")
-    
-    # Summary stats
-    all_scores = [a[0] for a in anchors]
-    print(f"\n📈 SUMMARY STATISTICS")
-    print(f"Positive anchors: {len(positive_anchors)}")
-    print(f"Negative anchors: {len(negative_anchors)}")
-    print(f"Average score: {np.mean(all_scores):.3f}")
-    print(f"Most positive: {max(all_scores):.3f}")
-    print(f"Most negative: {min(all_scores):.3f}")
+    finally:
+        if f:
+            f.close()
 
-def print_patterns(patterns: Dict):
+def print_patterns(patterns: Dict, output_file=None):
     """Print analysis patterns"""
-    print(f"\n📊 CREATIVE ANALYSIS PATTERNS")
-    print("=" * 50)
     
-    # Sort by average importance
-    sorted_patterns = sorted(patterns.items(), key=lambda x: x[1]['avg_importance'], reverse=True)
+    def write_line(text, file=None):
+        print(text)
+        if file:
+            file.write(text + '\n')
     
-    for chunk_type, stats in sorted_patterns:
-        print(f"\n{chunk_type}:")
-        print(f"  Average Importance: {stats['avg_importance']:+.3f}")
-        print(f"  Max Importance: {stats['max_importance']:+.3f}")
-        print(f"  Count: {stats['count']}")
-        print(f"  Std Dev: {stats['std']:.3f}")
+    # Open output file in append mode if specified
+    f = None
+    if output_file:
+        f = open(output_file, 'a', encoding='utf-8')
+    
+    try:
+        write_line(f"\n📊 CREATIVE ANALYSIS PATTERNS", f)
+        write_line("=" * 50, f)
+        
+        # Sort by average importance
+        sorted_patterns = sorted(patterns.items(), key=lambda x: x[1]['avg_importance'], reverse=True)
+        
+        for chunk_type, stats in sorted_patterns:
+            write_line(f"\n{chunk_type}:", f)
+            write_line(f"  Average Importance: {stats['avg_importance']:+.3f}", f)
+            write_line(f"  Max Importance: {stats['max_importance']:+.3f}", f)
+            write_line(f"  Min Importance: {stats['min_importance']:+.3f}", f)
+            write_line(f"  Count: {stats['count']}", f)
+            write_line(f"  Std Dev: {stats['std']:.3f}", f)
+    
+    finally:
+        if f:
+            f.close()
 
 def main():
     parser = argparse.ArgumentParser(description='Extract top thought anchors from creative analysis')
@@ -149,32 +207,27 @@ def main():
                        choices=['resampling_importance', 'counterfactual_importance', 'quality_variance'],
                        help='Importance metric to use')
     parser.add_argument('-k', '--top_k', type=int, default=15,
-                       help='Number of top anchors to show')
+                       help='Number of top anchors to show for each category (positive and negative)')
     parser.add_argument('--patterns', action='store_true',
                        help='Show analysis patterns by chunk type')
+    parser.add_argument('-o', '--output', type=str,
+                       help='Output file to save detailed results (with full text)')
     
     args = parser.parse_args()
     
     # Load results
     results = load_creative_results(args.results)
     print(f"Loaded {len(results)} creative analysis problems")
+    print(f"Analyzing results from: {args.results}")
     
     # Extract top anchors
-    top_anchors = extract_top_anchors(results, args.metric, args.top_k)
-    print_top_anchors(top_anchors, args.metric)
+    positive_anchors, negative_anchors = extract_top_anchors(results, args.metric, args.top_k)
+    print_top_anchors(positive_anchors, negative_anchors, args.metric, args.output)
     
     # Show patterns if requested
     if args.patterns:
         patterns = analyze_anchor_patterns(results)
-        print_patterns(patterns)
-    
-    # Summary statistics
-    all_scores = [abs(anchor[0]) for anchor in top_anchors]
-    if all_scores:
-        print(f"\n📈 SUMMARY STATISTICS")
-        print(f"Average importance (top {args.top_k}): {np.mean(all_scores):.3f}")
-        print(f"Max importance: {np.max(all_scores):.3f}")
-        print(f"Min importance: {np.min(all_scores):.3f}")
+        print_patterns(patterns, args.output)
 
 if __name__ == "__main__":
     main()

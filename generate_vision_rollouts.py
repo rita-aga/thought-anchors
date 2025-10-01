@@ -10,6 +10,9 @@ import random
 import numpy as np
 import torch
 import asyncio
+import httpx
+import base64
+from io import BytesIO
 from tqdm import tqdm
 from pathlib import Path
 from typing import List, Dict
@@ -26,8 +29,9 @@ load_dotenv()
 
 # Set up argument parser
 import argparse
-parser = argparse.ArgumentParser(description='Generate Qwen2.5-VL chain-of-thought solutions with rollouts')
-parser.add_argument('-m', '--model', type=str, default="Qwen/Qwen2.5-VL-7B-Instruct", help='Qwen vision model to use')
+parser = argparse.ArgumentParser(description='Generate vision chain-of-thought solutions with rollouts')
+parser.add_argument('-p', '--provider', type=str, default='Local', choices=['Local', 'OpenAI'], help='Provider to use')
+parser.add_argument('-m', '--model', type=str, default="Qwen/Qwen2.5-VL-7B-Instruct", help='Model to use (Qwen for Local, gpt-4o/gpt-4-vision-preview for OpenAI)')
 parser.add_argument('-d', '--dataset_path', type=str, required=True, help='Path to your custom vision dataset JSON')
 parser.add_argument('-o', '--output_dir', type=str, default='vision_rollouts', help='Directory to save results')
 parser.add_argument('-np', '--num_problems', type=int, default=1, help='Number of problems to sample')
@@ -40,6 +44,14 @@ parser.add_argument('-s', '--seed', type=int, default=44, help='Random seed for 
 parser.add_argument('-f', '--force', action='store_true', help='Force regeneration even if solutions exist')
 parser.add_argument('-q', '--quantize', default=False, action='store_true', help='Use quantization for local model')
 args = parser.parse_args()
+
+# Validate API key for OpenAI provider
+if args.provider == 'OpenAI':
+    if not os.getenv('OPENAI_API_KEY'):
+        raise ValueError("OPENAI_API_KEY environment variable must be set for OpenAI provider")
+    # Set default model for OpenAI if not specified
+    if args.model == "Qwen/Qwen2.5-VL-7B-Instruct":  # Default was not changed
+        args.model = "gpt-4o"
 
 # Create output directory
 output_dir = Path(args.output_dir) / args.model.split("/")[-1] / f"temperature_{str(args.temperature)}_top_p_{str(args.top_p)}" / "creative_analysis"
@@ -156,6 +168,106 @@ class QwenVisionRolloutGenerator:
             
         return output_text[0] if output_text else "No response generated"
 
+class OpenAIVisionRolloutGenerator:
+    """OpenAI Vision API provider for vision rollouts"""
+    
+    def __init__(self, model_name: str = "gpt-4o"):
+        self.model_name = model_name
+        self.api_key = os.getenv('OPENAI_API_KEY')
+        if not self.api_key:
+            raise ValueError("OPENAI_API_KEY environment variable must be set")
+        print(f"Using OpenAI Vision model: {model_name}")
+    
+    def _encode_image(self, image: Image.Image) -> str:
+        """Encode PIL Image to base64 string"""
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+    
+    async def generate_analysis(self, images: List[Image.Image], question: str, 
+                              prefix: str = "", temperature: float = 0.7, 
+                              max_tokens: int = 1024) -> str:
+        """Generate analysis with optional prefix for rollouts"""
+        
+        # Create content array with images and text
+        content = []
+        
+        # Add images
+        for img in images:
+            base64_image = self._encode_image(img)
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}"
+                }
+            })
+        
+        # Add text prompt
+        full_question = f"Analyze these images and answer: {question}"
+        if prefix:
+            full_question += f"\n\nAnalysis:\n{prefix}"
+        else:
+            full_question += "\n\nAnalysis:\n"
+            
+        content.append({
+            "type": "text",
+            "text": full_question
+        })
+        
+        # Create OpenAI payload - handle GPT-5 special requirements
+        if "gpt-5" in self.model_name.lower():
+            # GPT-5-nano: Use higher token limit to account for reasoning tokens
+            # Reasoning tokens don't count toward output, so we need extra buffer
+            adjusted_max_tokens = max_tokens * 2  # Double the limit for GPT-5
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": content
+                    }
+                ],
+                "max_completion_tokens": adjusted_max_tokens
+                # No temperature parameter - GPT-5-nano only supports default (1.0)
+            }
+        else:
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": content
+                    }
+                ],
+                "max_tokens": max_tokens,
+                "temperature": temperature
+            }
+        
+        # Make API request
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        }
+        
+        async with httpx.AsyncClient(timeout=240) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=payload
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"OpenAI API error: {response.status_code} - {response.text}")
+            
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            
+            # Debug: Log if GPT-5 returns empty content
+            if "gpt-5" in self.model_name.lower() and (not content or content.strip() == ""):
+                print(f"  Warning: GPT-5 returned empty content. Full response: {result}")
+                
+            return content
+
 def load_vision_problems(dataset_path: str, num_problems: int = None) -> List[tuple]:
     """Load custom vision dataset"""
     with open(dataset_path, 'r') as f:
@@ -215,7 +327,7 @@ def evaluate_creative_response(response: str, ground_truth: str = "") -> float:
     
     return 1.0  # Placeholder - assumes all substantial responses are valid
 
-async def process_problem(problem_idx: int, problem: Dict, generator: QwenVisionRolloutGenerator):
+async def process_problem(problem_idx: int, problem: Dict, generator):
     """Process a single vision problem to generate rollouts"""
     
     problem_dir = output_dir / f"problem_{problem_idx}"
@@ -239,12 +351,21 @@ async def process_problem(problem_idx: int, problem: Dict, generator: QwenVision
     if not solution_file.exists() or args.force:
         print(f"Problem {problem_idx}: Generating base analysis")
         
-        base_analysis = generator.generate_analysis(
-            images=problem['images'],
-            question=problem['question'],
-            temperature=0.3,  # Lower temperature for base solution
-            max_tokens=args.max_tokens
-        )
+        # Handle both sync (Qwen) and async (OpenAI) generators
+        if hasattr(generator, 'generate_analysis') and asyncio.iscoroutinefunction(generator.generate_analysis):
+            base_analysis = await generator.generate_analysis(
+                images=problem['images'],
+                question=problem['question'],
+                temperature=0.3,  # Lower temperature for base solution
+                max_tokens=args.max_tokens
+            )
+        else:
+            base_analysis = generator.generate_analysis(
+                images=problem['images'],
+                question=problem['question'],
+                temperature=0.3,  # Lower temperature for base solution
+                max_tokens=args.max_tokens
+            )
         
         # Evaluate base solution (simple heuristic since no ground truth)
         is_correct = evaluate_creative_response(base_analysis)
@@ -316,13 +437,23 @@ async def process_problem(problem_idx: int, problem: Dict, generator: QwenVision
         new_solutions = []
         for rollout_idx in range(args.num_rollouts):
             try:
-                rollout_text = generator.generate_analysis(
-                    images=problem['images'],
-                    question=problem['question'],
-                    prefix=prefix,
-                    temperature=args.temperature,
-                    max_tokens=args.max_tokens
-                )
+                # Handle both sync (Qwen) and async (OpenAI) generators
+                if hasattr(generator, 'generate_analysis') and asyncio.iscoroutinefunction(generator.generate_analysis):
+                    rollout_text = await generator.generate_analysis(
+                        images=problem['images'],
+                        question=problem['question'],
+                        prefix=prefix,
+                        temperature=args.temperature,
+                        max_tokens=args.max_tokens
+                    )
+                else:
+                    rollout_text = generator.generate_analysis(
+                        images=problem['images'],
+                        question=problem['question'],
+                        prefix=prefix,
+                        temperature=args.temperature,
+                        max_tokens=args.max_tokens
+                    )
                 
                 is_valid = evaluate_creative_response(rollout_text)
                 
@@ -361,8 +492,11 @@ async def main():
     
     print(f"Loaded {len(problems)} problems.")
     
-    # Initialize vision model
-    generator = QwenVisionRolloutGenerator(args.model, args.quantize)
+    # Initialize vision model based on provider
+    if args.provider == 'OpenAI':
+        generator = OpenAIVisionRolloutGenerator(args.model)
+    else:  # Local
+        generator = QwenVisionRolloutGenerator(args.model, args.quantize)
     
     # Process problems
     for problem_idx, problem in tqdm(problems, desc="Processing problems"):

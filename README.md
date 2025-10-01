@@ -40,7 +40,11 @@ The vision generator maintains the same chunk-based rollout structure as the ori
 
 **Usage:**
 ```bash
+# Using Qwen vision model
 python generate_vision_rollouts.py -d sample_vision_dataset.json -m Qwen/Qwen2.5-VL-7B-Instruct -np 10 -nr 50
+
+# Using GPT-5 (requires OpenAI API key)
+python generate_vision_rollouts.py -p OpenAI -m gpt-5 -d sample_vision_dataset.json -np 10 -nr 50
 ```
 
 ## Creative/Vision Analysis Extension
@@ -56,7 +60,11 @@ The extension demonstrates that the thought anchor framework generalizes beyond 
 
 **Usage:**
 ```bash
+# Analyze Qwen vision rollouts
 python analyze_rollouts.py -vc vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis
+
+# Analyze GPT-5 vision rollouts
+python analyze_rollouts.py -vc vision_rollouts/gpt-5/temperature_0.7_top_p_0.9/creative_analysis
 ```
 
 ## Extract Top Thought Anchors
@@ -64,8 +72,17 @@ python analyze_rollouts.py -vc vision_rollouts/Qwen2.5-VL-7B-Instruct/temperatur
 After running creative analysis, extract the most important reasoning steps:
 
 ```bash
-python extract_creative_anchors.py -r analysis/basic/creative_analysis/vision_analysis_results.json -k 10
-python plot_creative_analysis.py  # Generate visualizations
+# Extract anchors from GPT-5 analysis (save full text to file)
+python extract_creative_anchors.py -r analysis/basic/creative_analysis/vision_analysis_results.json -k 10 -o anchors_analysis.txt --patterns
+
+# Generate visualizations (now uses resampling importance by default)
+python plot_creative_analysis.py  
+
+# Or specify custom path
+python plot_creative_analysis.py -rd vision_rollouts/gpt-5/temperature_0.7_top_p_0.9/creative_analysis
+
+# For Qwen analysis (if you have Qwen data)
+python plot_creative_analysis.py -rd vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis
 ```
 
 ## Citation

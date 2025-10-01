@@ -1,0 +1,90 @@
+
+🔗 TOP CREATIVE THOUGHT ANCHORS (Resampling Importance)
+================================================================================
+
+🔥 POSITIVE ANCHORS (Important - removing these HURTS quality):
+------------------------------------------------------------
+
+ 1. [Technical Analysis] Score: +0.300
+    Problem: problem_0, Chunk: 4
+    Full Text: - Small, deliberate clusters of pixel rectangles as the only color accents.
+
+ 2. [Symbolic Analysis] Score: +0.200
+    Problem: problem_0, Chunk: 6
+    Full Text: The city appears as a Baku (dream-eater) that comforts and wounds.
+
+ 3. [Initial Observation] Score: +0.200
+    Problem: problem_0, Chunk: 10
+    Full Text: - Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).
+
+ 4. [Technical Analysis] Score: +0.200
+    Problem: problem_0, Chunk: 40
+    Full Text: - Placement plan (to echo finished.jpg’s rhythm while serving this scene):
+  1.
+
+ 5. [Technical Analysis] Score: +0.200
+    Problem: problem_0, Chunk: 44
+    Full Text: 4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.
+
+❌ NEGATIVE ANCHORS (Harmful - removing these IMPROVES quality):
+------------------------------------------------------------
+
+ 1. [Symbolic Analysis] Score: -0.300
+    Problem: problem_0, Chunk: 5
+    Full Text: 2) Lock the narrative for unfinished.jpg
+- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island.
+
+ 2. [Technical Analysis] Score: -0.300
+    Problem: problem_0, Chunk: 50
+    Full Text: - Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.
+
+ 3. [Technical Analysis] Score: -0.200
+    Problem: problem_0, Chunk: 11
+    Full Text: 3) Composition refinement (keep the existing layout and strengthen flow)
+- Triangular gaze structure: top right profile (eyes closed) → center figure looking up → lower figure asleep with hands on cheeks.
+
+ 4. [Technical Analysis] Score: -0.200
+    Problem: problem_0, Chunk: 24
+    Full Text: - Wonder Wheel: darker rim and select spokes; don’t outline fully—let portions dissolve into mist to keep faces primary.
+
+ 5. [Technical Analysis] Score: -0.200
+    Problem: problem_0, Chunk: 27
+    Full Text: - Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.
+
+📈 SUMMARY STATISTICS
+Positive anchors: 5
+Negative anchors: 5
+Average score: -0.010
+Most positive: 0.300
+Most negative: -0.300
+
+📊 CREATIVE ANALYSIS PATTERNS
+==================================================
+
+Technical Analysis:
+  Average Importance: +0.007
+  Max Importance: +0.300
+  Min Importance: -0.300
+  Count: 42
+  Std Dev: 0.114
+
+Initial Observation:
+  Average Importance: -0.013
+  Max Importance: +0.200
+  Min Importance: -0.100
+  Count: 8
+  Std Dev: 0.093
+
+Symbolic Analysis:
+  Average Importance: -0.044
+  Max Importance: +0.200
+  Min Importance: -0.300
+  Count: 9
+  Std Dev: 0.134
+
+Emotional Interpretation:
+  Average Importance: -0.050
+  Max Importance: +0.000
+  Min Importance: -0.100
+  Count: 2
+  Std Dev: 0.050

@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Plot creative analysis results')
 parser.add_argument('-rd', '--results_dir', type=str, 
-                   default="vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis", 
+                   default="vision_rollouts/gpt-5/temperature_0.7_top_p_0.9/creative_analysis", 
                    help='Directory containing creative analysis results')
 parser.add_argument('-od', '--output_dir', type=str, default="analysis/creative_plots", 
                    help='Directory to save plots')
@@ -83,7 +83,8 @@ def collect_creative_data(results_dir):
             labeled_chunks = data.get('labeled_chunks', [])
             importance_metrics = data.get('importance_metrics', {})
             
-            # Get counterfactual importance scores
+            # Get importance scores (use resampling_importance for vision rollouts since counterfactual doesn't work)
+            resampling_scores = importance_metrics.get('resampling_importance', [])
             counterfactual_scores = importance_metrics.get('counterfactual_importance', [])
             quality_scores = importance_metrics.get('quality_variance', [])
             
@@ -92,8 +93,9 @@ def collect_creative_data(results_dir):
                 chunk_type = chunk.get('chunk_type', 'Unknown')
                 chunk_text = chunk.get('chunk_text', '')
                 
-                # Get importance score for this chunk
-                importance_score = counterfactual_scores[i] if i < len(counterfactual_scores) else 0.0
+                # Get importance scores for this chunk (prefer resampling if available)
+                resampling_score = resampling_scores[i] if i < len(resampling_scores) else 0.0
+                counterfactual_score = counterfactual_scores[i] if i < len(counterfactual_scores) else 0.0
                 quality_score = quality_scores[i] if i < len(quality_scores) else 0.0
                 
                 chunk_data.append({
@@ -101,7 +103,8 @@ def collect_creative_data(results_dir):
                     'chunk_idx': i,
                     'chunk_type': chunk_type,
                     'chunk_text': chunk_text,
-                    'counterfactual_importance': importance_score,
+                    'resampling_importance': resampling_score,
+                    'counterfactual_importance': counterfactual_score,
                     'quality_variance': quality_score,
                     'position_normalized': i / len(labeled_chunks) if len(labeled_chunks) > 0 else 0,
                     'total_chunks': len(labeled_chunks)
@@ -117,8 +120,8 @@ def plot_importance_by_type(df, output_dir):
     """Plot importance metrics by chunk type"""
     plt.figure(figsize=FIGSIZE)
     
-    # Group by chunk type and calculate mean importance
-    type_importance = df.groupby('chunk_type')['counterfactual_importance'].agg(['mean', 'std', 'count'])
+    # Group by chunk type and calculate mean importance (use resampling_importance)
+    type_importance = df.groupby('chunk_type')['resampling_importance'].agg(['mean', 'std', 'count'])
     type_importance = type_importance.sort_values('mean', ascending=True)
     
     # Create bar plot
@@ -129,7 +132,7 @@ def plot_importance_by_type(df, output_dir):
     plt.errorbar(type_importance['mean'], type_importance.index, 
                 xerr=type_importance['std'], fmt='none', color='black', capsize=3)
     
-    plt.xlabel('Mean Counterfactual Importance')
+    plt.xlabel('Mean Resampling Importance')
     plt.ylabel('Chunk Type')
     plt.title('Importance by Creative Analysis Step Type')
     plt.tight_layout()
@@ -147,13 +150,13 @@ def plot_importance_vs_position(df, output_dir):
     for chunk_type in df['chunk_type'].unique():
         mask = df['chunk_type'] == chunk_type
         plt.scatter(df[mask]['position_normalized'], 
-                   df[mask]['counterfactual_importance'],
+                   df[mask]['resampling_importance'],
                    label=chunk_type, 
                    color=CATEGORY_COLORS.get(chunk_type, '#666666'),
                    alpha=0.7)
     
     plt.xlabel('Normalized Position in Solution')
-    plt.ylabel('Counterfactual Importance')
+    plt.ylabel('Resampling Importance')
     plt.title('Importance vs Position in Creative Analysis')
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
@@ -164,21 +167,21 @@ def plot_importance_vs_position(df, output_dir):
     plt.close()
 
 def plot_quality_vs_importance(df, output_dir):
-    """Plot quality variance vs counterfactual importance"""
+    """Plot quality variance vs resampling importance"""
     plt.figure(figsize=FIGSIZE)
     
     # Scatter plot colored by chunk type
     for chunk_type in df['chunk_type'].unique():
         mask = df['chunk_type'] == chunk_type
         plt.scatter(df[mask]['quality_variance'], 
-                   df[mask]['counterfactual_importance'],
+                   df[mask]['resampling_importance'],
                    label=chunk_type, 
                    color=CATEGORY_COLORS.get(chunk_type, '#666666'),
                    alpha=0.7)
     
     plt.xlabel('Quality Variance')
-    plt.ylabel('Counterfactual Importance')
-    plt.title('Quality Variance vs Counterfactual Importance')
+    plt.ylabel('Resampling Importance')
+    plt.title('Quality Variance vs Resampling Importance')
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     
@@ -240,8 +243,8 @@ def main():
         'total_chunks': len(df),
         'total_problems': df['problem_id'].nunique(),
         'chunk_types': df['chunk_type'].value_counts().to_dict(),
-        'mean_importance': df['counterfactual_importance'].mean(),
-        'std_importance': df['counterfactual_importance'].std(),
+        'mean_importance': df['resampling_importance'].mean(),
+        'std_importance': df['resampling_importance'].std(),
         'mean_quality_variance': df['quality_variance'].mean(),
         'std_quality_variance': df['quality_variance'].std()
     }
