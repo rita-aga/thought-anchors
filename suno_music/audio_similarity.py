@@ -18,6 +18,46 @@ from pathlib import Path
 from itertools import combinations
 import sys
 
+# CLAP model will be loaded lazily only if --clap flag is used
+_CLAP_MODEL = None
+
+
+def load_clap_model(device='cuda'):
+    """
+    Load CLAP model lazily (only once when needed).
+    
+    Args:
+        device: 'cuda' or 'cpu'
+    
+    Returns:
+        CLAP model instance
+    """
+    global _CLAP_MODEL
+    
+    if _CLAP_MODEL is None:
+        try:
+            import laion_clap
+            import torch
+            
+            # Determine device
+            if device == 'cuda' and not torch.cuda.is_available():
+                print("CUDA not available, falling back to CPU", file=sys.stderr)
+                device = 'cpu'
+            
+            print(f"Loading CLAP model on {device}...", file=sys.stderr)
+            _CLAP_MODEL = laion_clap.CLAP_Module(enable_fusion=False, device=device)
+            _CLAP_MODEL.load_ckpt()  # Load default checkpoint
+            print("CLAP model loaded successfully", file=sys.stderr)
+            
+        except ImportError:
+            print("Error: laion-clap not installed. Install with: pip install laion-clap", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error loading CLAP model: {e}", file=sys.stderr)
+            sys.exit(1)
+    
+    return _CLAP_MODEL
+
 
 def extract_mfcc_features(audio_path, duration=60, n_mfcc=13):
     """
@@ -122,7 +162,7 @@ def format_time(seconds):
     return f"{minutes}:{secs:05.2f}"
 
 
-def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=1.0, n_mfcc=13):
+def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=1.0, n_mfcc=13, use_clap=False):
     """
     Compute pairwise similarity between audio files using sequence matching.
     
@@ -133,7 +173,8 @@ def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=
         audio_files: List of paths to audio files
         window_size: Window size in seconds
         hop_size: Step size between windows in seconds
-        n_mfcc: Number of MFCC coefficients
+        n_mfcc: Number of MFCC coefficients (only used if use_clap=False)
+        use_clap: If True, use CLAP embeddings; if False, use MFCC features
     
     Returns:
         List of tuples (file1, file2, best_similarity)
@@ -145,7 +186,7 @@ def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=
     for audio_path in audio_files:
         print(f"  Processing windows: {audio_path}")
         features_list, time_stamps = extract_windowed_features(
-            audio_path, window_size, hop_size, n_mfcc
+            audio_path, window_size, hop_size, n_mfcc, use_clap
         )
         if features_list:
             windowed_data[audio_path] = (np.array(features_list), time_stamps)
@@ -189,10 +230,10 @@ def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=
                 end_idx = start_idx + query_len
                 
                 # Average similarity across aligned window pairs in this position
-                # Window i in query should match with window (start_idx + i) in target
+                # Window idx in query should match with window (start_idx + idx) in target
                 aligned_similarities = []
-                for i in range(query_len):
-                    aligned_similarities.append(similarity_matrix[i, start_idx + i])
+                for idx in range(query_len):
+                    aligned_similarities.append(similarity_matrix[idx, start_idx + idx])
                 
                 seq_similarity = np.mean(aligned_similarities)
                 
@@ -238,7 +279,7 @@ def compute_pairwise_similarities(audio_files, duration=60, n_mfcc=13):
     return results
 
 
-def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=13):
+def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=13, use_clap=False):
     """
     Extract features from overlapping windows of audio.
     
@@ -246,7 +287,8 @@ def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=
         audio_path: Path to audio file
         window_size: Window size in seconds (default 3.0)
         hop_size: Step size between windows in seconds (default 1.0)
-        n_mfcc: Number of MFCC coefficients (default 13)
+        n_mfcc: Number of MFCC coefficients (default 13, only used if use_clap=False)
+        use_clap: If True, use CLAP embeddings (512D); if False, use MFCC features (33D)
     
     Returns:
         Tuple of (features_list, time_stamps) where:
@@ -256,6 +298,15 @@ def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=
     try:
         # Load full audio file
         y, sr = librosa.load(audio_path, sr=None)
+        
+        # CLAP requires 48kHz sample rate
+        if use_clap:
+            if sr != 48000:
+                y = librosa.resample(y, orig_sr=sr, target_sr=48000)
+                sr = 48000
+            
+            # Load CLAP model (cached after first call)
+            clap_model = load_clap_model(device='cuda')
         
         # Calculate window and hop sizes in samples
         window_samples = int(window_size * sr)
@@ -269,26 +320,37 @@ def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=
             end_sample = start_sample + window_samples
             y_window = y[start_sample:end_sample]
             
-            # Extract features for this window
-            mfcc = librosa.feature.mfcc(y=y_window, sr=sr, n_mfcc=n_mfcc)
-            mfcc_mean = np.mean(mfcc, axis=1)
-            
-            chroma = librosa.feature.chroma_stft(y=y_window, sr=sr)
-            chroma_mean = np.mean(chroma, axis=1)
-            
-            spec_contrast = librosa.feature.spectral_contrast(y=y_window, sr=sr)
-            spec_contrast_mean = np.mean(spec_contrast, axis=1)
-            
-            zcr = librosa.feature.zero_crossing_rate(y_window)
-            zcr_mean = np.mean(zcr)
-            
-            # Concatenate features (no tempo for short windows)
-            window_features = np.concatenate([
-                mfcc_mean,
-                chroma_mean,
-                spec_contrast_mean,
-                [zcr_mean]
-            ])
+            if use_clap:
+                # CLAP embeddings (512D)
+                # get_audio_embedding_from_data expects list of audio arrays
+                embedding = clap_model.get_audio_embedding_from_data(
+                    x=[y_window],
+                    use_tensor=False
+                )
+                # embedding is shape (1, 512), flatten to 1D
+                window_features = embedding[0]
+            else:
+                # Extract MFCC-based features (33D)
+                mfcc = librosa.feature.mfcc(y=y_window, sr=sr, n_mfcc=n_mfcc)
+                mfcc_mean = np.mean(mfcc, axis=1)
+                
+                chroma = librosa.feature.chroma_stft(y=y_window, sr=sr)
+                chroma_mean = np.mean(chroma, axis=1)
+                
+                spec_contrast = librosa.feature.spectral_contrast(y=y_window, sr=sr)
+                spec_contrast_mean = np.mean(spec_contrast, axis=1)
+                
+                zcr = librosa.feature.zero_crossing_rate(y_window)
+                zcr_mean = np.mean(zcr)
+                
+                # Concatenate features (no tempo for short windows)
+                # Total: 13 + 12 + 7 + 1 = 33 features
+                window_features = np.concatenate([
+                    mfcc_mean,
+                    chroma_mean,
+                    spec_contrast_mean,
+                    [zcr_mean]
+                ])
             
             features_list.append(window_features)
             
@@ -304,7 +366,7 @@ def extract_windowed_features(audio_path, window_size=3.0, hop_size=1.0, n_mfcc=
         return [], []
 
 
-def find_similar_sequences(audio_files, window_size=3.0, hop_size=1.0, sequence_length=10.0, top_n=3, n_mfcc=13):
+def find_similar_sequences(audio_files, window_size=3.0, hop_size=1.0, sequence_length=10.0, top_n=3, n_mfcc=13, use_clap=False):
     """
     Find most similar SEQUENCES (multiple consecutive windows) that connect files.
     
@@ -317,7 +379,8 @@ def find_similar_sequences(audio_files, window_size=3.0, hop_size=1.0, sequence_
         hop_size: Step size between windows in seconds (e.g., 1.0)
         sequence_length: Length of sequence to find in seconds (e.g., 10.0)
         top_n: Number of top sequences to return
-        n_mfcc: Number of MFCC coefficients
+        n_mfcc: Number of MFCC coefficients (only used if use_clap=False)
+        use_clap: If True, use CLAP embeddings; if False, use MFCC features
     
     Returns:
         List of similar sequences, where each is a dict with:
@@ -331,7 +394,7 @@ def find_similar_sequences(audio_files, window_size=3.0, hop_size=1.0, sequence_
     for audio_path in audio_files:
         print(f"  Processing windows: {audio_path}")
         features_list, time_stamps = extract_windowed_features(
-            audio_path, window_size, hop_size, n_mfcc
+            audio_path, window_size, hop_size, n_mfcc, use_clap
         )
         if features_list:
             windowed_data[audio_path] = (np.array(features_list), time_stamps)
@@ -444,7 +507,7 @@ def find_similar_sequences(audio_files, window_size=3.0, hop_size=1.0, sequence_
     return sequences[:top_n]
 
 
-def find_similar_passages(audio_files, window_size=3.0, hop_size=1.0, top_n=3, n_mfcc=13):
+def find_similar_passages(audio_files, window_size=3.0, hop_size=1.0, top_n=3, n_mfcc=13, use_clap=False):
     """
     Find most similar passages that connect multiple audio files.
     
@@ -456,7 +519,8 @@ def find_similar_passages(audio_files, window_size=3.0, hop_size=1.0, top_n=3, n
         window_size: Window size in seconds
         hop_size: Step size between windows in seconds
         top_n: Number of top "anchor passages" to return
-        n_mfcc: Number of MFCC coefficients
+        n_mfcc: Number of MFCC coefficients (only used if use_clap=False)
+        use_clap: If True, use CLAP embeddings; if False, use MFCC features
     
     Returns:
         List of anchor passages, where each anchor is a dict with:
@@ -470,7 +534,7 @@ def find_similar_passages(audio_files, window_size=3.0, hop_size=1.0, top_n=3, n
     for audio_path in audio_files:
         print(f"  Processing windows: {audio_path}")
         features_list, time_stamps = extract_windowed_features(
-            audio_path, window_size, hop_size, n_mfcc
+            audio_path, window_size, hop_size, n_mfcc, use_clap
         )
         if features_list:
             windowed_data[audio_path] = (np.array(features_list), time_stamps)
@@ -593,6 +657,11 @@ def main():
         help='Find sequences of LENGTH seconds that connect all files (e.g., --sequences 10 for 10s sequences)'
     )
     parser.add_argument(
+        '--clap',
+        action='store_true',
+        help='Use CLAP (Contrastive Language-Audio Pretraining) embeddings instead of MFCC features. Better semantic understanding (speech vs music, genres) but slower.'
+    )
+    parser.add_argument(
         '-w', '--window-size',
         type=float,
         default=3.0,
@@ -658,7 +727,8 @@ def main():
             hop_size=args.hop_size,
             sequence_length=args.sequences,
             top_n=args.top_passages,
-            n_mfcc=args.n_mfcc
+            n_mfcc=args.n_mfcc,
+            use_clap=args.clap
         )
         
         # Print sequence results
@@ -691,7 +761,8 @@ def main():
             window_size=args.window_size,
             hop_size=args.hop_size,
             top_n=args.top_passages,
-            n_mfcc=args.n_mfcc
+            n_mfcc=args.n_mfcc,
+            use_clap=args.clap
         )
         
         # Print passage results
@@ -722,7 +793,8 @@ def main():
             args.audio_files,
             window_size=args.window_size,
             hop_size=args.hop_size,
-            n_mfcc=args.n_mfcc
+            n_mfcc=args.n_mfcc,
+            use_clap=args.clap
         )
         
         # Sort if requested
