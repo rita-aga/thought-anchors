@@ -85,6 +85,24 @@ python plot_creative_analysis.py -rd vision_rollouts/gpt-5/temperature_0.7_top_p
 python plot_creative_analysis.py -rd vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis
 ```
 
+## Audio Similarity Analysis
+
+Compare audio files (MP3) using multi-feature analysis. Supports MFCC-based features (fast) or CLAP embeddings (more accurate semantic understanding).
+
+```bash
+
+cd suno_music
+
+# Compare multiple songs for pair-wise similarity
+python audio_similarity.py 01.mp3 02.mp3 03.mp3 --clap
+
+# Find individual 3s windows that match across all files (similarity anchors)
+python audio_similarity.py 01.mp3 02.mp3 03.mp3 --passages --clap
+
+# Find 10-second sequences that connect all files
+python audio_similarity.py 01.mp3 02.mp3 03.mp3 --sequences 10 --clap
+```
+
 ## Citation
 
 Please cite our work if you are using our code or dataset.
