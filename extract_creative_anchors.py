@@ -15,14 +15,15 @@ def load_creative_results(results_path: str) -> List[Dict]:
     with open(results_path, 'r') as f:
         return json.load(f)
 
-def extract_top_anchors(results: List[Dict], metric: str = "resampling_importance", top_k: int = 10) -> Tuple[List[Tuple], List[Tuple]]:
+def extract_top_anchors(results: List[Dict], metric: str = "resampling_importance", top_k_positive: int = 10, top_k_negative: int = 5) -> Tuple[List[Tuple], List[Tuple]]:
     """
     Extract top thought anchors from creative analysis
     
     Args:
         results: List of problem results
         metric: Which importance metric to use (resampling_importance, counterfactual_importance, quality_variance)
-        top_k: How many top anchors to return for each category (positive and negative)
+        top_k_positive: How many top positive anchors to return
+        top_k_negative: How many top negative anchors to return
     
     Returns:
         Tuple of (positive_anchors, negative_anchors) - both sorted by magnitude
@@ -59,7 +60,7 @@ def extract_top_anchors(results: List[Dict], metric: str = "resampling_importanc
     # Sort negative by magnitude (most negative first) 
     negative_anchors.sort(key=lambda x: x[0])
     
-    return positive_anchors[:top_k], negative_anchors[:top_k]
+    return positive_anchors[:top_k_positive], negative_anchors[:top_k_negative]
 
 def analyze_anchor_patterns(results: List[Dict]) -> Dict:
     """Analyze patterns in creative thought anchors"""
@@ -206,8 +207,12 @@ def main():
     parser.add_argument('-m', '--metric', type=str, default='resampling_importance',
                        choices=['resampling_importance', 'counterfactual_importance', 'quality_variance'],
                        help='Importance metric to use')
+    parser.add_argument('-kp', '--top_k_positive', type=int, default=10,
+                       help='Number of top positive anchors to show')
+    parser.add_argument('-kn', '--top_k_negative', type=int, default=5,
+                       help='Number of top negative anchors to show')
     parser.add_argument('-k', '--top_k', type=int, default=15,
-                       help='Number of top anchors to show for each category (positive and negative)')
+                       help='Number of top anchors to show for each category (positive and negative) - DEPRECATED, use -kp and -kn instead')
     parser.add_argument('--patterns', action='store_true',
                        help='Show analysis patterns by chunk type')
     parser.add_argument('-o', '--output', type=str,
@@ -221,7 +226,11 @@ def main():
     print(f"Analyzing results from: {args.results}")
     
     # Extract top anchors
-    positive_anchors, negative_anchors = extract_top_anchors(results, args.metric, args.top_k)
+    # Use new parameters if provided, otherwise fall back to old top_k for backwards compatibility
+    top_k_positive = args.top_k_positive if hasattr(args, 'top_k_positive') else args.top_k
+    top_k_negative = args.top_k_negative if hasattr(args, 'top_k_negative') else args.top_k
+    
+    positive_anchors, negative_anchors = extract_top_anchors(results, args.metric, top_k_positive, top_k_negative)
     print_top_anchors(positive_anchors, negative_anchors, args.metric, args.output)
     
     # Show patterns if requested

@@ -26,6 +26,26 @@
     Problem: problem_0, Chunk: 44
     Full Text: 4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.
 
+ 6. [Technical Analysis] Score: +0.100
+    Problem: problem_0, Chunk: 17
+    Full Text: - Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.
+
+ 7. [Technical Analysis] Score: +0.100
+    Problem: problem_0, Chunk: 23
+    Full Text: - Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.
+
+ 8. [Technical Analysis] Score: +0.100
+    Problem: problem_0, Chunk: 26
+    Full Text: Lose edges into atmosphere where they approach the faces.
+
+ 9. [Technical Analysis] Score: +0.100
+    Problem: problem_0, Chunk: 37
+    Full Text: - Form: small, crisp squares/rectangles (2–12 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.
+
+10. [Symbolic Analysis] Score: +0.100
+    Problem: problem_0, Chunk: 12
+    Full Text: Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku’s snout.
+
 ❌ NEGATIVE ANCHORS (Harmful - removing these IMPROVES quality):
 ------------------------------------------------------------
 
@@ -52,9 +72,9 @@
     Full Text: - Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.
 
 📈 SUMMARY STATISTICS
-Positive anchors: 5
+Positive anchors: 10
 Negative anchors: 5
-Average score: -0.010
+Average score: 0.027
 Most positive: 0.300
 Most negative: -0.300
 
