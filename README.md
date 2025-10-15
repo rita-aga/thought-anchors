@@ -85,6 +85,40 @@ python plot_creative_analysis.py -rd vision_rollouts/gpt-5/temperature_0.7_top_p
 python plot_creative_analysis.py -rd vision_rollouts/Qwen2.5-VL-7B-Instruct/temperature_0.7_top_p_0.9/creative_analysis
 ```
 
+## Audio Similarity Analysis
+
+Compare audio files (MP3) using multi-feature analysis including MFCC, Chroma, Spectral Contrast, and more. Supports three analysis modes:
+
+**1. Default: Pairwise song similarity (sequence-based)**
+```bash
+# Compare multiple songs - slides shorter song through longer to find best match
+python suno_music/audio_similarity.py song1.mp3 song2.mp3 song3.mp3
+```
+Output: Simple similarity scores between each pair (e.g., `song1.mp3 vs song2.mp3: 0.9654`)
+
+**2. Anchor passages: Find specific 3-second matching moments**
+```bash
+# Find individual 3s windows that match across all files
+python suno_music/audio_similarity.py *.mp3 --passages
+```
+Output: Top matching 3-second windows across all songs with timestamps
+
+**3. Sequences: Find longer matching sections**
+```bash
+# Find 10-second sequences that connect all files
+python suno_music/audio_similarity.py *.mp3 --sequences 10
+
+# Or find 30-second sequences
+python suno_music/audio_similarity.py *.mp3 --sequences 30
+```
+Output: Top matching N-second sequences across all songs
+
+**Quick mode (fast but less accurate):**
+```bash
+# Simple averaging across entire songs
+python suno_music/audio_similarity.py *.mp3 --quick
+```
+
 ## Citation
 
 Please cite our work if you are using our code or dataset.
