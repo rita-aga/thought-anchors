@@ -1,0 +1,26 @@
+{
+  "problems": [
+    {
+      "id": 0,
+      "question": "Analyze both images, create a detailed plan to complete unfinished.jpg in the style of finished.jpg. The architecture elements of finished.jpg are Brooklyn Bridge, Domino Sugar factory in NYC, creatures in finishied.jpg are koi turning into dragon; The architecture elements of unfinished.jpg are Coney Island, creature in unfinished.jpg is Baku (the dream eater yokai). The final image MUST be black and white. Do not bring architecture elements and creatures from finished into unfinished. Use the composition and subjects from the unfinished. These drawings capture the melancholic intimacy of being in a long-term relationship with New York City itself - depicting the city as living creatures.","images": [
+        "images/finished.jpg",
+        "images/unfinished.jpg"
+      ],
+      "evaluation_criteria": {
+        "prompt": "Rate the quality of this completion plan (1-10). Consider: Does the response correctly identify and describe the artistic style, techniques, and characteristics of the finished drawing (it should be black and white expressive pencil realism)? Does the plan show understanding of composition principles (balance, focal points, visual flow) and explain how to implement compositional elements? Is the proposed plan for completing the unfinished drawing logical, detailed, and stylistically consistent? Would an artist be able to follow this plan to create a coherent completion? Provide a single quality score (1-10) where: 1-3: Poor (vague, inaccurate, or impractical), 4-6: Average (basic analysis with some useful elements), 7-8: Good (comprehensive analysis with clear, actionable insights), 9-10: Excellent (expert-level analysis with sophisticated artistic understanding)",
+        "focus_areas": [
+          "style_analysis",
+          "composition_understanding", 
+          "completion_plan_quality",
+          "creative_insight"
+        ]
+      },
+      "metadata": {
+        "domain": "art_completion",
+        "difficulty": "hard",
+        "art_period": "variable",
+        "analysis_type": "comprehensive_with_planning"
+      }
+    }
+  ]
+}

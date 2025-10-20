@@ -1,0 +1,1258 @@
+[
+  {
+    "problem_data": {
+      "problem_id": "problem_0",
+      "prompt": "",
+      "image_path": "",
+      "problem_text": ""
+    },
+    "solution_data": {
+      "analysis": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.\n\n1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).\n- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.\n- Small, deliberate clusters of pixel rectangles as the only color accents.\n\n2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island. The city appears as a Baku (dream-eater) that comforts and wounds.\n- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.\n- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents. Keep hot-air balloons as dream relics over the shore haze.\n- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).\n\n3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks. Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.\n- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch). Slightly offset so one spoke aligns with the line of sight.\n- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke. Let its body echo the Ferris wheel curve to knit creature and architecture.\n- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.\n- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure. Keep small strolling silhouettes for scale and loneliness.\n- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.\n\n4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.\n- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.\n- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.\n- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.\n- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows. Lose edges into atmosphere where they approach the faces.\n- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.\n\n5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form. Lost edges in hair into the fog.\n- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair. Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.\n- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges. Let some wisps pass in front of the Wonder Wheel for layering.\n- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show. Give the Parachute Jump a delicate lattice that fades upward.\n\n6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).\n- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.\n- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max. Balance magenta and yellow roughly 60/40.\n- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1. Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2. One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).\n  3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).\n  4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.\n  5. One minimal stack near the right kiosk roofline (two magenta, one yellow).\n  6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.\n\n7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.\n- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.\n- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.\n- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.\n- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.\n- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).\n- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.\n\n8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.\n- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.\n- Coney Island is specific but dream-faded: iconic forms present, details restrained.\n\n9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.\n- Do not import koi/dragon/Brooklyn Bridge/Domino elements.\n- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.\n\nDeliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.\n- Print test at intended size to confirm pixel legibility and overall value cohesion.\n\nThis plan will yield a black-and-white, dreamlike Coney Island scene whose restrained neon pixel artifacts echo memory glitches\u2014matching the mood and finish of finished.jpg while telling the Baku-at-Coney chapter of the relationship with New York.",
+      "text": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.\n\n1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).\n- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.\n- Small, deliberate clusters of pixel rectangles as the only color accents.\n\n2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island. The city appears as a Baku (dream-eater) that comforts and wounds.\n- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.\n- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents. Keep hot-air balloons as dream relics over the shore haze.\n- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).\n\n3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks. Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.\n- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch). Slightly offset so one spoke aligns with the line of sight.\n- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke. Let its body echo the Ferris wheel curve to knit creature and architecture.\n- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.\n- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure. Keep small strolling silhouettes for scale and loneliness.\n- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.\n\n4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.\n- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.\n- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.\n- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.\n- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows. Lose edges into atmosphere where they approach the faces.\n- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.\n\n5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form. Lost edges in hair into the fog.\n- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair. Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.\n- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges. Let some wisps pass in front of the Wonder Wheel for layering.\n- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show. Give the Parachute Jump a delicate lattice that fades upward.\n\n6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).\n- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.\n- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max. Balance magenta and yellow roughly 60/40.\n- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1. Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2. One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).\n  3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).\n  4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.\n  5. One minimal stack near the right kiosk roofline (two magenta, one yellow).\n  6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.\n\n7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.\n- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.\n- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.\n- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.\n- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.\n- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).\n- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.\n\n8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.\n- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.\n- Coney Island is specific but dream-faded: iconic forms present, details restrained.\n\n9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.\n- Do not import koi/dragon/Brooklyn Bridge/Domino elements.\n- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.\n\nDeliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.\n- Print test at intended size to confirm pixel legibility and overall value cohesion.\n\nThis plan will yield a black-and-white, dreamlike Coney Island scene whose restrained neon pixel artifacts echo memory glitches\u2014matching the mood and finish of finished.jpg while telling the Baku-at-Coney chapter of the relationship with New York.",
+      "is_valid": true,
+      "solution": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.\n\n1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).\n- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.\n- Small, deliberate clusters of pixel rectangles as the only color accents.\n\n2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island. The city appears as a Baku (dream-eater) that comforts and wounds.\n- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.\n- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents. Keep hot-air balloons as dream relics over the shore haze.\n- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).\n\n3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks. Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.\n- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch). Slightly offset so one spoke aligns with the line of sight.\n- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke. Let its body echo the Ferris wheel curve to knit creature and architecture.\n- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.\n- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure. Keep small strolling silhouettes for scale and loneliness.\n- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.\n\n4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.\n- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.\n- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.\n- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.\n- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows. Lose edges into atmosphere where they approach the faces.\n- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.\n\n5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form. Lost edges in hair into the fog.\n- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair. Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.\n- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges. Let some wisps pass in front of the Wonder Wheel for layering.\n- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show. Give the Parachute Jump a delicate lattice that fades upward.\n\n6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).\n- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.\n- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max. Balance magenta and yellow roughly 60/40.\n- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1. Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2. One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).\n  3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).\n  4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.\n  5. One minimal stack near the right kiosk roofline (two magenta, one yellow).\n  6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.\n\n7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.\n- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.\n- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.\n- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.\n- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.\n- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).\n- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.\n\n8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.\n- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.\n- Coney Island is specific but dream-faded: iconic forms present, details restrained.\n\n9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.\n- Do not import koi/dragon/Brooklyn Bridge/Domino elements.\n- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.\n\nDeliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.\n- Print test at intended size to confirm pixel legibility and overall value cohesion.\n\nThis plan will yield a black-and-white, dreamlike Coney Island scene whose restrained neon pixel artifacts echo memory glitches\u2014matching the mood and finish of finished.jpg while telling the Baku-at-Coney chapter of the relationship with New York.",
+      "prompt": "Analyze both images, create a detailed plan to complete unfinished.jpg in the style of finished.jpg important context: the architecture elements of finished.jpg are brooklyn bridge, domino sugar factory in nyc, creatures in finishied.jpg are koi turning into dragon; the architecture elements of unfinished.jpg is coney island creatures in unfinished.jpg is baku the dream eater; the final image MUST be black and white; the color accents ONLY be in form of pixels (no washes) in neon yellow and magenta (not blue and orange), these accents should be very limited. Do not bring architecture and creatues from finished into unfinished. We need to use the composition and subjects from unfinished. These drawings capture the melancholic intimacy of being in a long-term relationship with New York City itself - depicting the city as living creatures (shapeshifting fox, dream-eating Baku, flowing dragon) that you encounter, love, and are wounded by in specific places that hold multiple overlapping heartbreaks and experiences - good and bad."
+    },
+    "chunks": [
+      "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.",
+      "1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).",
+      "- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.",
+      "- Small, deliberate clusters of pixel rectangles as the only color accents.",
+      "2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island.",
+      "The city appears as a Baku (dream-eater) that comforts and wounds.",
+      "- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.",
+      "- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents.",
+      "Keep hot-air balloons as dream relics over the shore haze.",
+      "- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).",
+      "3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks.",
+      "Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.",
+      "- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch).",
+      "Slightly offset so one spoke aligns with the line of sight.",
+      "- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke.",
+      "Let its body echo the Ferris wheel curve to knit creature and architecture.",
+      "- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.",
+      "- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure.",
+      "Keep small strolling silhouettes for scale and loneliness.",
+      "- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.",
+      "4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.",
+      "- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.",
+      "- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.",
+      "- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.",
+      "- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows.",
+      "Lose edges into atmosphere where they approach the faces.",
+      "- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.",
+      "5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form.",
+      "Lost edges in hair into the fog.",
+      "- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair.",
+      "Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.",
+      "- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges.",
+      "Let some wisps pass in front of the Wonder Wheel for layering.",
+      "- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show.",
+      "Give the Parachute Jump a delicate lattice that fades upward.",
+      "6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).",
+      "- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.",
+      "- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max.",
+      "Balance magenta and yellow roughly 60/40.",
+      "- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1.",
+      "Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2.",
+      "One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).",
+      "3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).",
+      "4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.",
+      "5. One minimal stack near the right kiosk roofline (two magenta, one yellow).",
+      "6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.",
+      "7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.",
+      "- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.",
+      "- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.",
+      "- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.",
+      "- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.",
+      "- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).",
+      "- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.",
+      "8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.",
+      "- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.",
+      "- Coney Island is specific but dream-faded: iconic forms present, details restrained.",
+      "9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.",
+      "- Do not import koi/dragon/Brooklyn Bridge/Domino elements.",
+      "- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.",
+      "Deliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.",
+      "- Print test at intended size to confirm pixel legibility and overall value cohesion."
+    ],
+    "labeled_chunks": [
+      {
+        "chunk_text": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual langua...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like ...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "- Small, deliberate clusters of pixel rectangles as the only color accents.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Small, deliberate clusters of pixel rectangles as the only color accents.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New Yor...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "The city appears as a Baku (dream-eater) that comforts and wounds.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "The city appears as a Baku (dream-eater) that comforts and wounds.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents.",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "Keep hot-air balloons as dream relics over the shore haze.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Keep hot-air balloons as dream relics over the shore haze.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch).",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch).",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Slightly offset so one spoke aligns with the line of sight.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Slightly offset so one spoke aligns with the line of sight.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Let its body echo the Ferris wheel curve to knit creature and architecture.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Let its body echo the Ferris wheel curve to knit creature and architecture.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical co...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Keep small strolling silhouettes for scale and loneliness.",
+        "chunk_type": "Emotional Interpretation",
+        "chunk_summary": "Keep small strolling silhouettes for scale and loneliness.",
+        "function_tags": [
+          "emotional_interpretation"
+        ]
+      },
+      {
+        "chunk_text": "- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a s...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kn...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it f...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Lose edges into atmosphere where they approach the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Lose edges into atmosphere where they approach the faces.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatchin...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Lost edges in hair into the fog.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Lost edges in hair into the fog.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly cur...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Let some wisps pass in front of the Wonder Wheel for layering.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Let some wisps pass in front of the Wonder Wheel for layering.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Give the Parachute Jump a delicate lattice that fades upward.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Give the Parachute Jump a delicate lattice that fades upward.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Balance magenta and yellow roughly 60/40.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Balance magenta and yellow roughly 60/40.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta domi...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yell...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "5. One minimal stack near the right kiosk roofline (two magenta, one yellow).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "5. One minimal stack near the right kiosk roofline (two magenta, one yellow).",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Kee...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s s...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on ten...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few select...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size a...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.",
+        "chunk_type": "Emotional Interpretation",
+        "chunk_summary": "8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouth...",
+        "function_tags": [
+          "emotional_interpretation"
+        ]
+      },
+      {
+        "chunk_text": "- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream ...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Coney Island is specific but dream-faded: iconic forms present, details restrained.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Coney Island is specific but dream-faded: iconic forms present, details restrained.",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pix...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Do not import koi/dragon/Brooklyn Bridge/Domino elements.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Do not import koi/dragon/Brooklyn Bridge/Domino elements.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Deliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Deliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Print test at intended size to confirm pixel legibility and overall value cohesion.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Print test at intended size to confirm pixel legibility and overall value cohesion.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      }
+    ],
+    "chunk_labels": [
+      {
+        "chunk_text": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual language of finished.jpg while honoring your constraints.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Below is a practical, production-ready plan to finish unfinished.jpg so it matches the visual langua...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal look with soft, foggy vignettes and a clear value hierarchy (faces brightest; creatures and architecture mid\u2013dark; background fades to mist).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "1) Read the style of finished.jpg (to emulate, not copy its subjects)\n- Monochrome graphite/charcoal...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like swirls.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Interwoven subjects: faces, a mythic creature, and NYC architecture connected by smoke/water-like ...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "- Small, deliberate clusters of pixel rectangles as the only color accents.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Small, deliberate clusters of pixel rectangles as the only color accents.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New York, centered on Coney Island.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "2) Lock the narrative for unfinished.jpg\n- Theme: a long-term, bittersweet relationship with New Yor...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "The city appears as a Baku (dream-eater) that comforts and wounds.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "The city appears as a Baku (dream-eater) that comforts and wounds.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- Humans: three faces echoing memory states\u2014alert, reflective, and dreaming.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Place: Wonder Wheel, Cyclone structure, Parachute Jump, boardwalk kiosks/tents.",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "Keep hot-air balloons as dream relics over the shore haze.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Keep hot-air balloons as dream relics over the shore haze.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Creature: only the Baku (no koi/dragon; no Brooklyn Bridge/Domino Factory).",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure: top right profile (eyes closed) \u2192 center figure looking up \u2192 lower figure asleep with hands on cheeks.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "3) Composition refinement (keep the existing layout and strengthen flow)\n- Triangular gaze structure...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Hair from the bottom figure becomes dream-smoke that spirals upward into the Baku\u2019s snout.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch).",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- Halo the center figure with the Wonder Wheel (spokes act like a crown, as in the sketch).",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Slightly offset so one spoke aligns with the line of sight.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Slightly offset so one spoke aligns with the line of sight.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Place the Baku arcing from upper left to top center, its snout dipping toward the dream-smoke.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Let its body echo the Ferris wheel curve to knit creature and architecture.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Let its body echo the Ferris wheel curve to knit creature and architecture.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical counterweight.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Right side midground: Cyclone coaster lattice receding; far right: Parachute Jump as a vertical co...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the center figure.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Foreground bottom: boardwalk in two-point perspective, planks and a tapered \u201cV\u201d that leads to the ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Keep small strolling silhouettes for scale and loneliness.",
+        "chunk_type": "Emotional Interpretation",
+        "chunk_summary": "Keep small strolling silhouettes for scale and loneliness.",
+        "function_tags": [
+          "emotional_interpretation"
+        ]
+      },
+      {
+        "chunk_text": "- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Left and right lower corners: kiosks/tents, kept simple and geometric so faces stay dominant.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a soft, foggy vignette around edges.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "4) Value design (match finished.jpg\u2019s mood)\n- Global: black-and-white only for the drawing; push a s...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kneaded-eraser pulls.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Faces: highest lights on cheekbones, nose bridges, eyelids and lips; keep highlights crisp with kn...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it from sky mist.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Baku: mid-to-dark value mass with velvet texture; lighter rim light along the top to separate it f...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to keep faces primary.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Wonder Wheel: darker rim and select spokes; don\u2019t outline fully\u2014let portions dissolve into mist to...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Cyclone and Parachute Jump: crisp, thin darks but one to two steps lighter than facial shadows.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Lose edges into atmosphere where they approach the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Lose edges into atmosphere where they approach the faces.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing attention.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Foreground figures and tents: mostly silhouettes with a few reflected highlights to avoid stealing...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatching aligned to form.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "5) Rendering language (graphite/charcoal look)\n- Faces: soft graphite blending, subtle cross-hatchin...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Lost edges in hair into the fog.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Lost edges in hair into the fog.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly curling snout pulling a ribbon of smoke from the lower figure\u2019s hair.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Baku: tapir-like head with fine fur and faint patterning; eyelids half-lowered; long, slightly cur...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Use compressed charcoal for dark muzzle and ear interiors; lift highlights on whisker ridge and brow...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Smoke/dream ribbons: broad, erased channels with soft charcoal glazing at edges.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Let some wisps pass in front of the Wonder Wheel for layering.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Let some wisps pass in front of the Wonder Wheel for layering.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than you show.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Architecture: mechanical precision via hard-edged strokes; keep selective detail\u2014suggest more than...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Give the Parachute Jump a delicate lattice that fades upward.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Give the Parachute Jump a delicate lattice that fades upward.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or #F5FF00) and Neon Magenta #FF1E8E (or #FF00A8).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "6) Pixel color accents (neon yellow and magenta only; no washes)\n- Palette: Neon Yellow #EFFF00 (or ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks or clusters; edges perfectly hard; no gradients, glows, or soft washes.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Form: small, crisp squares/rectangles (2\u201312 px depending on final size), arranged in short stacks ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Amount: very limited\u2014roughly 3% of total image area; 6\u20138 clusters max.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Balance magenta and yellow roughly 60/40.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Balance magenta and yellow roughly 60/40.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Placement plan (to echo finished.jpg\u2019s rhythm while serving this scene):\n  1.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "Two tiny stacks along the lower boardwalk center-left, staggered like dropped \u201cmemories.\u201d\n  2.",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta dominant, a few yellow pixels interleaved).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "One vertical cluster skimming the outer rim of the Wonder Wheel at upper left quadrant (magenta domi...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yellow dominant to read as \u201cedible\u201d dream sparks).",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "3. One short, curved trail leaving the Baku\u2019s snout\u2014three tiny squares that arc into the smoke (yell...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "4. One small cluster at the base of the Parachute Jump (magenta) to anchor that side.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "5. One minimal stack near the right kiosk roofline (two magenta, one yellow).",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "5. One minimal stack near the right kiosk roofline (two magenta, one yellow).",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Keep every cluster away from key facial highlights; they should orbit, not touch, the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "6. Optional micro-cluster beside a distant hot-air balloon for a single distant \u201cmemory ping.\u201d\n- Kee...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for faces, Baku, and key structures; ensure the Wonder Wheel ellipse is true and centered behind the middle face.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "7) Step-by-step execution (digital or traditional-to-digital)\n- Clean drawing: tighten line art for ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Block values: large, soft charcoal masses; set the vignette; reserve facial highlights.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s snout right above a bright smoke highlight so it reads as the dream being eaten.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Develop focal areas: finish faces to 90% polish; add hair-to-smoke transitions; place the Baku\u2019s s...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute Jump with crisp strokes; let portions fade in mist.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Build architecture: darken the Wonder Wheel rim and selected spokes; suggest Cyclone and Parachute...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on tent flaps.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Foreground/story details: silhouettes on the boardwalk with long, soft shadows; subtle wind on ten...",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few selective edges (eyelashes, Baku eye rim, a couple of wheel bolts).",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Final balance pass: unify atmospheric haze with very light powdered charcoal; sharpen a few select...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size and reduce any cluster that competes with the faces.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Add pixel accents last on a separate layer set to Normal; no blur; test visibility at print size a...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouths to sustain melancholy.",
+        "chunk_type": "Emotional Interpretation",
+        "chunk_summary": "8) Emotional checkpoints\n- Faces carry tenderness and fatigue; keep micro-asymmetries and soft mouth...",
+        "function_tags": [
+          "emotional_interpretation"
+        ]
+      },
+      {
+        "chunk_text": "- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream smoke.",
+        "chunk_type": "Symbolic Analysis",
+        "chunk_summary": "- The Baku reads as both gentle and predatory\u2014comforting curve, but a mouth poised to sip the dream ...",
+        "function_tags": [
+          "symbolic_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Coney Island is specific but dream-faded: iconic forms present, details restrained.",
+        "chunk_type": "Initial Observation",
+        "chunk_summary": "- Coney Island is specific but dream-faded: iconic forms present, details restrained.",
+        "function_tags": [
+          "initial_observation"
+        ]
+      },
+      {
+        "chunk_text": "9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pixels for color.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "9) What to avoid (to stay on brief)\n- No blue/orange or any washes; only neon yellow and magenta pix...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Do not import koi/dragon/Brooklyn Bridge/Domino elements.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Do not import koi/dragon/Brooklyn Bridge/Domino elements.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Don\u2019t over-detail the rides; faces and Baku must remain the focal anchors.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "Deliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group labeled Pixels_Neon (subfolders Magenta, Yellow) for easy toggling.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "Deliverable notes\n- Final artwork in high-res grayscale with pixel accents on their own layer group ...",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      },
+      {
+        "chunk_text": "- Print test at intended size to confirm pixel legibility and overall value cohesion.",
+        "chunk_type": "Technical Analysis",
+        "chunk_summary": "- Print test at intended size to confirm pixel legibility and overall value cohesion.",
+        "function_tags": [
+          "technical_analysis"
+        ]
+      }
+    ],
+    "importance_metrics": {
+      "resampling_importance": [
+        -0.09999999999999998,
+        0.0,
+        0.0,
+        0.3,
+        -0.3,
+        0.2,
+        0.0,
+        -0.10000000000000003,
+        -0.09999999999999998,
+        0.2,
+        -0.2,
+        0.09999999999999998,
+        -0.09999999999999998,
+        0.09999999999999998,
+        0.0,
+        0.0,
+        0.10000000000000003,
+        -0.10000000000000003,
+        -0.09999999999999998,
+        0.09999999999999998,
+        -0.09999999999999998,
+        0.09999999999999998,
+        0.10000000000000003,
+        -0.2,
+        0.09999999999999998,
+        0.10000000000000003,
+        -0.2,
+        0.09999999999999998,
+        0.0,
+        0.0,
+        -0.09999999999999998,
+        0.0,
+        0.09999999999999998,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000000000003,
+        0.0,
+        -0.10000000000000003,
+        0.2,
+        -0.09999999999999998,
+        -0.10000000000000003,
+        -0.09999999999999998,
+        0.2,
+        -0.10000000000000003,
+        0.0,
+        -0.06,
+        -0.03999999999999998,
+        0.09999999999999998,
+        -0.3,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "counterfactual_importance": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quality_variance": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0023999999999999985,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "metadata": {
+      "num_chunks": 61,
+      "similarity_threshold": 0.8,
+      "sentence_model": "all-MiniLM-L6-v2",
+      "force_relabel": true,
+      "analysis_type": "vision_creative"
+    }
+  }
+]

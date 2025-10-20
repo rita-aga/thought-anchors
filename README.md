@@ -41,10 +41,10 @@ The vision generator maintains the same chunk-based rollout structure as the ori
 **Usage:**
 ```bash
 # Using Qwen vision model
-python generate_vision_rollouts.py -d sample_vision_dataset.json -m Qwen/Qwen2.5-VL-7B-Instruct -np 10 -nr 50
+python generate_vision_rollouts.py -d vision_dataset.json -m Qwen/Qwen2.5-VL-7B-Instruct -np 10 -nr 50
 
 # Using GPT-5 (requires OpenAI API key)
-python generate_vision_rollouts.py -p OpenAI -m gpt-5 -d sample_vision_dataset.json -np 10 -nr 50
+python generate_vision_rollouts.py -p OpenAI -m gpt-5 -d vision_dataset.json -np 1 -nr 50
 ```
 
 ## Creative/Vision Analysis Extension
