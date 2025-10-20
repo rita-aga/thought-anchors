@@ -17,6 +17,8 @@ from scipy.spatial.distance import cosine
 from pathlib import Path
 from itertools import combinations
 import sys
+import matplotlib.pyplot as plt
+import matplotlib
 
 # CLAP model will be loaded lazily only if --clap flag is used
 _CLAP_MODEL = None
@@ -160,6 +162,131 @@ def format_time(seconds):
     minutes = int(seconds // 60)
     secs = seconds % 60
     return f"{minutes}:{secs:05.2f}"
+
+
+def plot_waveforms(audio_files, duration=None, output_path="waveforms.png"):
+    """
+    Plot waveforms for multiple audio files side by side.
+    
+    Args:
+        audio_files: List of audio file paths
+        duration: Duration to plot (None = full file)
+        output_path: Path to save the plot
+    """
+    matplotlib.use('Agg')  # Use non-interactive backend
+    
+    num_files = len(audio_files)
+    fig, axes = plt.subplots(num_files, 1, figsize=(14, 2.5 * num_files))
+    
+    # Handle single file case (axes won't be array)
+    if num_files == 1:
+        axes = [axes]
+    
+    for idx, file_path in enumerate(audio_files):
+        # Load audio
+        if duration:
+            y, sr = librosa.load(file_path, duration=duration, sr=None)
+        else:
+            y, sr = librosa.load(file_path, sr=None)
+        
+        # Create time axis
+        time = np.linspace(0, len(y) / sr, len(y))
+        
+        # Plot waveform
+        axes[idx].plot(time, y, linewidth=0.5, color='magenta', alpha=0.8)
+        axes[idx].set_ylabel('Amplitude', fontsize=11)
+        axes[idx].set_ylim(-1, 1)
+        axes[idx].grid(True, alpha=0.3)
+        
+        # Add title with file info
+        filename = Path(file_path).name
+        file_duration = len(y) / sr
+        axes[idx].set_title(
+            f"{filename} (Duration: {file_duration:.2f}s, Sample Rate: {sr}Hz)",
+            fontsize=12,
+            fontweight='bold'
+        )
+    
+    # X-label only on bottom plot
+    axes[-1].set_xlabel('Time (seconds)', fontsize=11)
+    
+    # Overall title
+    fig.suptitle(
+        f'Audio Waveforms ({num_files} file{"s" if num_files > 1 else ""})',
+        fontsize=15,
+        fontweight='bold',
+        y=0.995
+    )
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"\n✓ Waveform plot saved to: {output_path}")
+
+
+def plot_matching_waveforms(anchor_data, output_path="similarity_match_waveforms.png"):
+    """
+    Plot waveforms for the top matching anchor/sequence across all files.
+    
+    Args:
+        anchor_data: Dictionary with 'files' key containing file paths mapped to (start_time, end_time, similarity)
+        output_path: Path to save the plot
+    """
+    matplotlib.use('Agg')  # Use non-interactive backend
+    
+    num_files = len(anchor_data['files'])
+    fig, axes = plt.subplots(num_files, 1, figsize=(12, 2 * num_files))
+    
+    # Handle single file case (axes won't be array)
+    if num_files == 1:
+        axes = [axes]
+    
+    # Sort files alphabetically for consistent ordering
+    sorted_files = sorted(anchor_data['files'].items(), key=lambda x: Path(x[0]).name)
+    
+    for idx, (file_path, (start_time, end_time, similarity)) in enumerate(sorted_files):
+        # Load audio segment
+        y, sr = librosa.load(file_path, offset=start_time, duration=end_time - start_time, sr=None)
+        
+        # Create time axis
+        time = np.linspace(0, len(y) / sr, len(y))
+        
+        # Plot waveform
+        axes[idx].plot(time, y, linewidth=0.5, color='magenta')
+        axes[idx].set_ylabel('Amplitude', fontsize=10)
+        axes[idx].set_ylim(-1, 1)
+        axes[idx].grid(True, alpha=0.3)
+        
+        # Add title with file info
+        filename = Path(file_path).name
+        duration = end_time - start_time
+        start_str = format_time(start_time)
+        end_str = format_time(end_time)
+        axes[idx].set_title(
+            f"{filename} [{start_str} - {end_str}] ({duration:.1f}s) - Similarity: {similarity:.4f}",
+            fontsize=11,
+            fontweight='bold'
+        )
+    
+    # X-label only on bottom plot
+    axes[-1].set_xlabel('Time (seconds)', fontsize=10)
+    
+    # Overall title
+    avg_sim = anchor_data['avg_similarity']
+    fig.suptitle(
+        f'Top Matching Sequence (Avg Similarity: {avg_sim:.4f})',
+        fontsize=14,
+        fontweight='bold',
+        y=0.995
+    )
+    
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"\n✓ Waveform plot saved to: {output_path}")
+
 
 
 def compute_pairwise_sequence_similarity(audio_files, window_size=3.0, hop_size=1.0, n_mfcc=13, use_clap=False):
@@ -662,6 +789,11 @@ def main():
         help='Use CLAP (Contrastive Language-Audio Pretraining) embeddings instead of MFCC features. Better semantic understanding (speech vs music, genres) but slower.'
     )
     parser.add_argument(
+        '--plot-waveform',
+        action='store_true',
+        help='Plot waveforms of audio files without computing similarity (visualization only)'
+    )
+    parser.add_argument(
         '-w', '--window-size',
         type=float,
         default=3.0,
@@ -692,6 +824,11 @@ def main():
         if not Path(audio_file).exists():
             print(f"Error: File not found: {audio_file}", file=sys.stderr)
             sys.exit(1)
+    
+    # Mode 0: Plot waveforms only (no similarity computation)
+    if args.plot_waveform:
+        plot_waveforms(args.audio_files, duration=args.duration if args.duration != 60 else None)
+        return
     
     # Mode 1: Quick mode - overall file similarity (averaged features)
     if args.quick:
@@ -753,6 +890,14 @@ def main():
             print()  # Blank line between sequences
         
         print("=" * 80)
+        
+        # Plot waveforms for top matching sequence
+        if sequences:
+            plot_matching_waveforms(sequences[0], output_path="top_sequence_waveforms.png")
+        
+        # Plot waveforms for top match
+        if sequences:
+            plot_matching_waveforms(sequences[0], output_path="top_sequence_waveforms.png")
     
     # Mode 3: Find similar passages (individual 3s windows)
     elif args.passages:
@@ -786,6 +931,10 @@ def main():
             print()  # Blank line between anchors
         
         print("=" * 80)
+        
+        # Plot waveforms for top matching passage
+        if passages:
+            plot_matching_waveforms(passages[0], output_path="top_passage_waveforms.png")
     
     # Mode 4 (DEFAULT): Pairwise sequence similarity
     else:
