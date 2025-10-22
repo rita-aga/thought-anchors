@@ -38,8 +38,9 @@ parser.add_argument('-np', '--num_problems', type=int, default=1, help='Number o
 parser.add_argument('-nr', '--num_rollouts', type=int, default=50, help='Number of rollouts per chunk')
 parser.add_argument('-t', '--temperature', type=float, default=0.7, help='Temperature for rollout generation')
 parser.add_argument('-tp', '--top_p', type=float, default=0.9, help='Top-p sampling parameter')
-parser.add_argument('-mt', '--max_tokens', type=int, default=1024, help='Maximum number of tokens for generation')
+parser.add_argument('-mt', '--max_tokens', type=int, default=2048, help='Maximum number of tokens for generation (will be increased for GPT-5)')
 parser.add_argument('-mc', '--max_chunks', type=int, default=50, help='Maximum number of chunks to process')
+parser.add_argument('-c', '--concurrency', type=int, default=50, help='Maximum number of concurrent API requests (for parallel generation)')
 parser.add_argument('-s', '--seed', type=int, default=44, help='Random seed for reproducibility')
 parser.add_argument('-f', '--force', action='store_true', help='Force regeneration even if solutions exist')
 parser.add_argument('-q', '--quantize', default=False, action='store_true', help='Use quantization for local model')
@@ -216,9 +217,10 @@ class OpenAIVisionRolloutGenerator:
         
         # Create OpenAI payload - handle GPT-5 special requirements
         if "gpt-5" in self.model_name.lower():
-            # GPT-5-nano: Use higher token limit to account for reasoning tokens
-            # Reasoning tokens don't count toward output, so we need extra buffer
-            adjusted_max_tokens = max_tokens * 2  # Double the limit for GPT-5
+            # GPT-5-nano: Use much higher token limit to account for reasoning tokens
+            # Reasoning tokens (can be up to 32k) don't count toward output, so we need significant buffer
+            # The max_completion_tokens includes both reasoning and output tokens
+            adjusted_max_tokens = max_tokens * 4  # Quadruple the limit for GPT-5 to ensure room for response
             payload = {
                 "model": self.model_name,
                 "messages": [
@@ -249,7 +251,10 @@ class OpenAIVisionRolloutGenerator:
             "Authorization": f"Bearer {self.api_key}"
         }
         
-        async with httpx.AsyncClient(timeout=240) as client:
+        # Use longer timeout for GPT-5 due to extended reasoning time
+        timeout_seconds = 600 if "gpt-5" in self.model_name.lower() else 240  # 10 min for GPT-5, 4 min otherwise
+        
+        async with httpx.AsyncClient(timeout=timeout_seconds) as client:
             response = await client.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers=headers,
@@ -261,12 +266,17 @@ class OpenAIVisionRolloutGenerator:
             
             result = response.json()
             content = result['choices'][0]['message']['content']
+            finish_reason = result['choices'][0].get('finish_reason')
             
-            # Debug: Log if GPT-5 returns empty content
+            # Handle GPT-5 empty content due to length limit
             if "gpt-5" in self.model_name.lower() and (not content or content.strip() == ""):
                 print(f"  Warning: GPT-5 returned empty content. Full response: {result}")
                 
-            return content
+                # If it was due to length, return a placeholder rather than retrying
+                if finish_reason == 'length':
+                    return "[Response truncated due to reasoning token limit]"
+                
+            return content if content else ""
 
 def load_vision_problems(dataset_path: str, num_problems: int = None) -> List[tuple]:
     """Load custom vision dataset"""
@@ -429,13 +439,13 @@ async def process_problem(problem_idx: int, problem: Dict, generator):
             existing_solutions = []
         
         # Generate new rollouts
-        print(f"Problem {problem_idx}, Chunk {chunk_idx}: Generating {args.num_rollouts} rollouts")
+        print(f"Problem {problem_idx}, Chunk {chunk_idx}: Generating {args.num_rollouts} rollouts in parallel...")
         
         # Build prefix (everything up to this chunk)
         prefix = "".join(chunks[:chunk_idx])
         
-        new_solutions = []
-        for rollout_idx in range(args.num_rollouts):
+        # Define async generation function for parallel execution
+        async def generate_single_rollout(rollout_idx):
             try:
                 # Handle both sync (Qwen) and async (OpenAI) generators
                 if hasattr(generator, 'generate_analysis') and asyncio.iscoroutinefunction(generator.generate_analysis):
@@ -462,14 +472,96 @@ async def process_problem(problem_idx: int, problem: Dict, generator):
                     'text': rollout_text,
                     'is_valid': is_valid,
                     'chunk_idx': chunk_idx,
-                    'prefix': prefix
+                    'prefix': prefix,
+                    'error': None  # Track if this was successful
                 }
                 
-                new_solutions.append(solution)
+                # Show progress for first few completions
+                if rollout_idx < 5:
+                    print(f"  Rollout {rollout_idx + 1} completed ({len(rollout_text)} chars, valid={is_valid})")
+                
+                return solution
                 
             except Exception as e:
-                print(f"Error generating rollout {rollout_idx}: {e}")
-                continue
+                # Always log errors regardless of rollout_idx
+                error_msg = str(e)
+                if len(error_msg) > 200:  # Truncate long error messages
+                    error_msg = error_msg[:200] + "..."
+                print(f"  ❌ Error generating rollout {rollout_idx + 1}: {error_msg}")
+                
+                # Return error info for potential retry
+                return {
+                    'rollout_idx': rollout_idx,
+                    'text': '',
+                    'is_valid': 0.0,
+                    'chunk_idx': chunk_idx,
+                    'prefix': prefix,
+                    'error': str(e)
+                }
+        
+        # Generate all rollouts in parallel using asyncio.gather with batching
+        if hasattr(generator, 'generate_analysis') and asyncio.iscoroutinefunction(generator.generate_analysis):
+            # Parallel execution for async generators (OpenAI) with batching to respect rate limits
+            new_solutions = []
+            batch_size = args.concurrency
+            
+            for batch_start in range(0, args.num_rollouts, batch_size):
+                batch_end = min(batch_start + batch_size, args.num_rollouts)
+                print(f"  Launching batch {batch_start//batch_size + 1} (rollouts {batch_start + 1}-{batch_end})...")
+                
+                rollout_tasks = [generate_single_rollout(i) for i in range(batch_start, batch_end)]
+                results = await asyncio.gather(*rollout_tasks, return_exceptions=True)
+                
+                # Separate successful and failed rollouts
+                batch_solutions = []
+                failed_rollouts = []
+                for r in results:
+                    if r is not None and not isinstance(r, Exception):
+                        if r.get('error') is None and r.get('is_valid', 0) > 0:
+                            batch_solutions.append(r)
+                        else:
+                            failed_rollouts.append(r)
+                
+                new_solutions.extend(batch_solutions)
+                
+                if failed_rollouts:
+                    print(f"  Batch complete: {len(batch_solutions)}/{batch_end - batch_start} successful, {len(failed_rollouts)} failed")
+                else:
+                    print(f"  Batch complete: {len(batch_solutions)}/{batch_end - batch_start} successful")
+        else:
+            # Sequential execution for sync generators (Qwen local)
+            new_solutions = []
+            for rollout_idx in range(args.num_rollouts):
+                if rollout_idx % 10 == 0:
+                    print(f"  Generating rollout {rollout_idx + 1}/{args.num_rollouts}...")
+                result = await generate_single_rollout(rollout_idx)
+                if result is not None:
+                    new_solutions.append(result)
+        
+        print(f"  Total completed: {len(new_solutions)}/{args.num_rollouts} rollouts successfully")
+        
+        # Retry failed rollouts (API errors like 502)
+        if hasattr(generator, 'generate_analysis') and asyncio.iscoroutinefunction(generator.generate_analysis):
+            failed_count = args.num_rollouts - len(new_solutions)
+            if failed_count > 0:
+                print(f"  Retrying {failed_count} failed rollouts...")
+                
+                # Find which indices failed
+                successful_indices = {s['rollout_idx'] for s in new_solutions}
+                failed_indices = [i for i in range(args.num_rollouts) if i not in successful_indices]
+                
+                # Retry failed rollouts
+                retry_tasks = [generate_single_rollout(i) for i in failed_indices]
+                retry_results = await asyncio.gather(*retry_tasks, return_exceptions=True)
+                
+                retry_successful = [r for r in retry_results 
+                                   if r is not None and not isinstance(r, Exception) 
+                                   and r.get('error') is None and r.get('is_valid', 0) > 0]
+                
+                new_solutions.extend(retry_successful)
+                print(f"  Retry complete: {len(retry_successful)}/{failed_count} recovered")
+        
+        print(f"  Final total: {len(new_solutions)}/{args.num_rollouts} rollouts successfully generated")
         
         # Combine with existing solutions
         all_solutions = existing_solutions + new_solutions

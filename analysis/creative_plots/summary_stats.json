@@ -1,14 +1,14 @@
 {
-  "total_chunks": 61,
+  "total_chunks": 49,
   "total_problems": 1,
   "chunk_types": {
-    "Technical Analysis": 42,
-    "Symbolic Analysis": 9,
-    "Initial Observation": 8,
-    "Emotional Interpretation": 2
+    "Technical Analysis": 39,
+    "Initial Observation": 5,
+    "Emotional Interpretation": 3,
+    "Symbolic Analysis": 2
   },
-  "mean_importance": -0.004918032786885247,
-  "std_importance": 0.11573854084126675,
-  "mean_quality_variance": 3.934426229508194e-05,
-  "std_quality_variance": 0.0003072885118389501
+  "mean_importance": -0.00012244897959183684,
+  "std_importance": 0.016182606841789904,
+  "mean_quality_variance": 0.006374360288615219,
+  "std_quality_variance": 0.0020038201327542606
 }

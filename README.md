@@ -43,8 +43,12 @@ The vision generator maintains the same chunk-based rollout structure as the ori
 # Using Qwen vision model
 python generate_vision_rollouts.py -d vision_dataset.json -m Qwen/Qwen2.5-VL-7B-Instruct -np 10 -nr 50
 
-# Using GPT-5 (requires OpenAI API key)
+# Using GPT-5 (requires OpenAI API key, automatically uses higher token limit)
+# Rollouts are generated in parallel for 10-50x speedup
 python generate_vision_rollouts.py -p OpenAI -m gpt-5 -d vision_dataset.json -np 1 -nr 50
+
+# Control concurrency to manage API rate limits (default: 50 concurrent requests)
+python generate_vision_rollouts.py -p OpenAI -m gpt-5 -d vision_dataset.json -np 1 -nr 50 -c 20
 ```
 
 ## Creative/Vision Analysis Extension
@@ -91,7 +95,7 @@ Compare audio files (MP3) using multi-feature analysis. Supports MFCC-based feat
 
 ```bash
 
-cd suno_music
+cd suno-music
 
 # Compare multiple songs for pair-wise similarity
 python audio_similarity.py 01.mp3 02.mp3 03.mp3 --clap

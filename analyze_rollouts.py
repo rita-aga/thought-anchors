@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from dotenv import load_dotenv
 from prompts import DAG_PROMPT
 import re
@@ -24,6 +24,7 @@ import torch
 from functools import partial
 import scipy.stats as stats
 from matplotlib.lines import Line2D
+import asyncio
 
 # Global OpenAI API call counter
 OPENAI_API_CALLS = 0
@@ -146,6 +147,7 @@ def get_device():
 
 # Set up OpenAI API key
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+async_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 if not client.api_key:
     raise ValueError("OPENAI_API_KEY not found in .env file")
 
@@ -241,6 +243,139 @@ JSON: {{"quality": YOUR_NUMBER}}"""
     structure_score = min(10, max(1, sentence_count))
     avg_score = (length_score + structure_score) / 2
     return avg_score / 10.0
+
+async def evaluate_creative_quality_gpt5_async(response: str, evaluation_criteria: dict = None, max_retries: int = 2, rollout_idx: int = 0) -> tuple[float, int]:
+    """
+    Async version of evaluate_creative_quality_gpt5
+    Returns (quality_score, rollout_idx) tuple
+    """
+    
+    # Truncate response more aggressively to ensure consistent token usage
+    truncated_response = response[:600] if len(response) > 600 else response
+    
+    # Use custom evaluation criteria if provided, otherwise fall back to simple prompt
+    if evaluation_criteria and 'prompt' in evaluation_criteria:
+        eval_prompt = f"""{evaluation_criteria['prompt']}
+
+Response to evaluate:
+"{truncated_response}"
+
+JSON: {{"quality": YOUR_SCORE_1_TO_10}}"""
+    else:
+        # Fallback to simple evaluation
+        eval_prompt = f"""Rate this art analysis quality (1-10):
+
+"{truncated_response}"
+
+JSON: {{"quality": YOUR_NUMBER}}"""
+
+    # Try with increasing token limits if needed
+    token_limits = [1200, 1500, 2000]
+    
+    for attempt in range(max_retries + 1):
+        try:
+            current_token_limit = token_limits[min(attempt, len(token_limits) - 1)]
+            
+            # Increment counter before making the API call
+            increment_openai_counter()
+            
+            response_obj = await async_client.chat.completions.create(
+                model="gpt-5",
+                messages=[{"role": "user", "content": eval_prompt}],
+                max_completion_tokens=current_token_limit
+            )
+            
+            content = response_obj.choices[0].message.content
+            if not content or not content.strip():
+                if attempt < max_retries:
+                    continue
+                else:
+                    break
+                
+            content = content.strip()
+            
+            # Try to extract JSON if response contains extra text
+            if not content.startswith('{'):
+                import re
+                json_match = re.search(r'\{[^}]+\}', content)
+                if json_match:
+                    content = json_match.group()
+            
+            try:
+                result = json.loads(content)
+                score = result.get('quality', result.get('overall_quality', 5))
+                score = max(1, min(10, float(score)))
+                return (score / 10.0, rollout_idx)
+            except (json.JSONDecodeError, ValueError, KeyError):
+                if attempt < max_retries:
+                    continue
+                else:
+                    break
+                    
+        except Exception as e:
+            if attempt < max_retries:
+                await asyncio.sleep(0.5)  # Brief backoff
+                continue
+            else:
+                print(f"  ❌ GPT-5 API failed for rollout {rollout_idx+1} after {max_retries + 1} attempts: {str(e)[:100]}")
+                break
+    
+    # Fallback scoring
+    increment_fallback_counter()
+    word_count = len(response.split())
+    sentence_count = len([s for s in response.split('.') if s.strip()])
+    length_score = min(10, max(1, word_count / 10))
+    structure_score = min(10, max(1, sentence_count))
+    avg_score = (length_score + structure_score) / 2
+    return (avg_score / 10.0, rollout_idx)
+
+async def evaluate_rollouts_batch(rollouts: list, evaluation_criteria: dict = None, batch_size: int = 50) -> list[float]:
+    """
+    Evaluate multiple rollouts in parallel batches
+    Returns list of quality scores in same order as input rollouts
+    """
+    # Create tasks for all valid rollouts
+    tasks = []
+    valid_indices = []
+    for i, rollout in enumerate(rollouts):
+        if rollout.get('is_valid', True):
+            task = evaluate_creative_quality_gpt5_async(
+                rollout.get('text', ''),
+                evaluation_criteria,
+                rollout_idx=i
+            )
+            tasks.append(task)
+            valid_indices.append(i)
+    
+    if not tasks:
+        return []
+    
+    # Process in batches to avoid overwhelming the API
+    all_results = []
+    for batch_start in range(0, len(tasks), batch_size):
+        batch_end = min(batch_start + batch_size, len(tasks))
+        batch_tasks = tasks[batch_start:batch_end]
+        
+        print(f"      Evaluating rollouts {batch_start+1}-{batch_end}/{len(tasks)} with GPT-5...")
+        
+        # Run batch in parallel
+        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+        
+        # Handle any exceptions
+        for i, result in enumerate(batch_results):
+            if isinstance(result, Exception):
+                print(f"  ❌ Error evaluating rollout {batch_start + i + 1}: {str(result)[:100]}")
+                # Use fallback
+                increment_fallback_counter()
+                all_results.append((0.5, valid_indices[batch_start + i]))
+            else:
+                all_results.append(result)
+    
+    # Sort results by rollout index to maintain order
+    all_results.sort(key=lambda x: x[1])
+    
+    # Extract just the scores
+    return [score for score, _ in all_results]
 
 # Initialize the r1-distill-qwen-14b tokenizer
 tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/deepseek-r1-distill-qwen-14b")
@@ -2985,25 +3120,41 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
                     rollouts = json.load(f)
                 
                 # Evaluate quality scores properly instead of defaulting to 0.5
-                rollout_qualities = []
                 processed_solutions = []
                 print(f"    Chunk {chunk_idx+1}: Re-evaluating quality for {len(rollouts)} existing rollouts...")
                 
+                # Check which rollouts need evaluation
+                rollouts_needing_eval = []
+                rollouts_with_scores = []
+                for rollout in rollouts:
+                    if rollout.get('is_valid', True):
+                        if 'quality_score' in rollout and rollout['quality_score'] != 0.5:
+                            rollouts_with_scores.append(rollout['quality_score'])
+                        else:
+                            rollouts_needing_eval.append(rollout)
+                
+                # Batch evaluate missing scores
+                if rollouts_needing_eval and use_gpt5:
+                    new_qualities = asyncio.run(evaluate_rollouts_batch(rollouts_needing_eval, evaluation_criteria, batch_size=50))
+                elif rollouts_needing_eval:
+                    # Heuristic fallback
+                    new_qualities = []
+                    for rollout in rollouts_needing_eval:
+                        text_length = len(rollout.get('text', '').split())
+                        quality = min(1.0, text_length / 100.0)
+                        new_qualities.append(quality)
+                else:
+                    new_qualities = []
+                
+                # Combine existing and new quality scores
+                rollout_qualities = rollouts_with_scores + new_qualities
+                
+                # Now process all rollouts with their quality scores
+                quality_idx = 0
                 for i, rollout in enumerate(rollouts):
                     if rollout.get('is_valid', True):
-                        # Check if quality_score already exists, otherwise evaluate
-                        if 'quality_score' in rollout and rollout['quality_score'] != 0.5:
-                            quality = rollout['quality_score']
-                        else:
-                            # Evaluate quality using GPT-5 (or heuristic)
-                            if use_gpt5:
-                                quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), evaluation_criteria)
-                            else:
-                                # Heuristic fallback
-                                text_length = len(rollout.get('text', '').split())
-                                quality = min(1.0, text_length / 100.0)
-                        
-                        rollout_qualities.append(quality)
+                        quality = rollout_qualities[quality_idx]
+                        quality_idx += 1
                         
                         # Create solution info
                         sol_info = {
@@ -3042,22 +3193,26 @@ def calculate_vision_importance(problem_dir: Path, chunks: List[str], reference_
         
         # Process rollouts into same format as MATH analysis
         processed_solutions = []
-        rollout_qualities = []
         initial_fallback_count = get_fallback_count() if use_gpt5 else 0
         
-        for i, rollout in enumerate(rollouts):
-            if rollout.get('is_valid', True):
-                # Evaluate quality using GPT-5 (instead of is_correct)
-                if use_gpt5:
-                    if i % 5 == 0:  # Log every 5th evaluation to avoid spam
-                        print(f"      Evaluating rollout {i+1}/{len(rollouts)} with GPT-5...")
-                    quality = evaluate_creative_quality_gpt5(rollout.get('text', ''), evaluation_criteria)
-                else:
-                    # Heuristic fallback
+        # Evaluate all rollouts in parallel batches if using GPT-5
+        if use_gpt5:
+            rollout_qualities = asyncio.run(evaluate_rollouts_batch(rollouts, evaluation_criteria, batch_size=50))
+        else:
+            # Heuristic fallback for all rollouts
+            rollout_qualities = []
+            for rollout in rollouts:
+                if rollout.get('is_valid', True):
                     text_length = len(rollout.get('text', '').split())
                     quality = min(1.0, text_length / 100.0)
-                
-                rollout_qualities.append(quality)
+                    rollout_qualities.append(quality)
+        
+        # Create solution info for each rollout
+        quality_idx = 0
+        for i, rollout in enumerate(rollouts):
+            if rollout.get('is_valid', True):
+                quality = rollout_qualities[quality_idx]
+                quality_idx += 1
                 
                 # Create solution info compatible with original analysis
                 sol_info = {

@@ -1,0 +1,114 @@
+
+🔗 TOP CREATIVE THOUGHT ANCHORS (Resampling Importance)
+================================================================================
+
+🔥 POSITIVE ANCHORS (Important - removing these HURTS quality):
+------------------------------------------------------------
+
+ 1. [Technical Analysis] Score: +0.032
+    Problem: problem_0, Chunk: 14
+    Full Text: 3) Value plan (make a 3–5 value thumbnail first)
+- Lightest lights: highlights on the three faces; mist around them; rim light on Baku’s trunk; bulbs on the Wonder Wheel/Parachute Jump.
+
+ 2. [Technical Analysis] Score: +0.030
+    Problem: problem_0, Chunk: 38
+    Full Text: Keep them sparse so the image stays elegant and B/W.
+
+ 3. [Technical Analysis] Score: +0.026
+    Problem: problem_0, Chunk: 23
+    Full Text: C. Baku
+- Form: tapir/elephant hybrid as in the sketch; do not morph into other creatures.
+
+ 4. [Emotional Interpretation] Score: +0.026
+    Problem: problem_0, Chunk: 25
+    Full Text: - Expression: protective and tired rather than threatening.
+
+ 5. [Technical Analysis] Score: +0.022
+    Problem: problem_0, Chunk: 27
+    Full Text: Render spokes and gondola silhouettes selectively; break lines with fog so it doesn’t overpower the faces.
+
+ 6. [Technical Analysis] Score: +0.020
+    Problem: problem_0, Chunk: 44
+    Full Text: 6) Workflow (digital or traditional)
+- Digital: 300–600 dpi grayscale canvas; textured charcoal brushes; a paper texture layer set to Multiply; use soft light layers for global vignetting; final Levels adjustment to deepen blacks.
+
+ 7. [Technical Analysis] Score: +0.018
+    Problem: problem_0, Chunk: 40
+    Full Text: 5) Style notes to match finished.jpg while staying monochrome
+- Edge control: sharp focal edges at eyes, lips, Baku eye/trunk tip; most other edges soft or lost into vapor.
+
+ 8. [Technical Analysis] Score: +0.016
+    Problem: problem_0, Chunk: 29
+    Full Text: E. Parachute Jump + scaffolds
+- Vertical counterweight on the right.
+
+ 9. [Technical Analysis] Score: +0.016
+    Problem: problem_0, Chunk: 34
+    Full Text: - Boardwalk: indicate plank seams with tapering lines that converge; add a few reflected highlights and long figure shadows to enhance mood.
+
+10. [Technical Analysis] Score: +0.014
+    Problem: problem_0, Chunk: 1
+    Full Text: Goal
+- Finish unfinished.jpg in the visual language of finished.jpg: moody, graphite realism, layered montage, drifting smoke, soft–hard edge control, and strong value design.
+
+❌ NEGATIVE ANCHORS (Harmful - removing these IMPROVES quality):
+------------------------------------------------------------
+
+ 1. [Technical Analysis] Score: -0.052
+    Problem: problem_0, Chunk: 24
+    Full Text: - Texture: short, velvety fur on head; subtle wrinkles and pores on trunk; use kneaded-eraser lifts for rim lights; lose edges where the trunk enters smoke above the sleeping face.
+
+ 2. [Technical Analysis] Score: -0.030
+    Problem: problem_0, Chunk: 36
+    Full Text: - Balloons: very soft, translucent ovals with minimal line—present but not distracting.
+
+ 3. [Technical Analysis] Score: -0.020
+    Problem: problem_0, Chunk: 28
+    Full Text: - Add tiny bulb highlights along the rim using a sharp eraser—keep them irregular to feel human and old.
+
+ 4. [Technical Analysis] Score: -0.020
+    Problem: problem_0, Chunk: 37
+    Full Text: H. Atmosphere and unifying effects
+- Replace the color blocks from finished.jpg with grayscale “confetti/dust” in two values (light gray and near-black), drifting along the S‑curve path.
+
+ 5. [Technical Analysis] Score: -0.016
+    Problem: problem_0, Chunk: 42
+    Full Text: - High contrast micro‑details only at focal points; everywhere else simplified.
+
+📈 SUMMARY STATISTICS
+Positive anchors: 10
+Negative anchors: 5
+Average score: 0.005
+Most positive: 0.032
+Most negative: -0.052
+
+📊 CREATIVE ANALYSIS PATTERNS
+==================================================
+
+Emotional Interpretation:
+  Average Importance: +0.007
+  Max Importance: +0.026
+  Min Importance: -0.004
+  Count: 3
+  Std Dev: 0.014
+
+Technical Analysis:
+  Average Importance: +0.000
+  Max Importance: +0.032
+  Min Importance: -0.052
+  Count: 39
+  Std Dev: 0.017
+
+Initial Observation:
+  Average Importance: -0.004
+  Max Importance: +0.010
+  Min Importance: -0.014
+  Count: 5
+  Std Dev: 0.008
+
+Symbolic Analysis:
+  Average Importance: -0.008
+  Max Importance: +0.000
+  Min Importance: -0.016
+  Count: 2
+  Std Dev: 0.008
